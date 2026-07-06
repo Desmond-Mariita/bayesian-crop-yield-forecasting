@@ -13,8 +13,18 @@ Bayesian Crop Yield Forecasting is a crop-yield prediction system that combines:
 - **Deep learning** for complex spatial and temporal pattern recognition
 - **Explainable AI (XAI)** for transparent, decision-ready predictions
 
-This project implements all core algorithms **from scratch** using only NumPy,
-demonstrating a deep understanding of the underlying mathematics.
+**Charter — derive by hand, then validate in PyMC.** Every algorithm is first implemented
+**from scratch in NumPy** to demonstrate the underlying mathematics; each Bayesian
+milestone is then **rebuilt in PyMC/ArviZ and the posteriors compared**. The from-scratch
+pass builds understanding; the PyMC pass builds fluency with the production stack.
+
+This repo is the learning foundation for operating
+[keragita-farm-intelligence](https://github.com/Desmond-Mariita/keragita-farm-intelligence)
+— a production Bayesian farm platform (Kilifi County, Kenya). Its curriculum, model
+families (hierarchical yield, state-space, survival), governance contracts
+(ExplanationCard/RejectionCard, data & model cards, evidence gates), and datasets are
+deliberately mirrored here in miniature. See `docs/INVARIANTS.md` and
+`reports/analysis/2026-07-06-kfi-borrow-analysis.md`.
 
 ## 📁 Project Structure
 
@@ -28,7 +38,8 @@ bayesian-crop-yield-forecasting/
 │   ├── model_selection/   # Cross-validation utilities
 │   ├── neural/            # Neural networks
 │   ├── pipeline/          # End-to-end pipelines
-│   └── visualization/     # Plotting and reporting
+│   ├── visualization/     # Plotting and reporting
+│   └── xai/               # ExplanationCard / RejectionCard + evidence gates
 ├── tools/                  # verify.py + check_guidelines.py (quality gates)
 ├── scripts/                # Multi-LLM review wrappers (see AGENTS.md)
 ├── data/                   # raw / interim / processed
@@ -55,19 +66,27 @@ pytest
 python tools/verify.py        # writes reports/verification/<timestamp>.md
 ```
 
-## 📊 Dataset
+## 📊 Datasets
 
-This project forecasts crop yields from **weather, soil, and historical-yield** features.
-<!-- TODO: confirm the specific dataset source (e.g. FAOSTAT / USDA NASS / a Kaggle crop-yield dataset). -->
+Two tracks, both governed by data cards in `docs/data_cards/` (CI-enforced):
+
+1. **Volume track (Phases 1–2 workhorse):** **USDA NASS Quickstats** county-level corn &
+   soybean yields + **NASA POWER** weather (temperature, humidity, solar, wind).
+   Thousands of county-years — enough data to *see* hierarchical partial pooling and
+   convergence diagnostics work.
+2. **Thin-data capstone (later, Kilifi track):** **CHIRPS v2.0** rainfall + **NASA POWER**
+   for the Keragita farm's grid cell, with **KALRO yield bands** as priors
+   (`config/crops/kilifi_crops.yaml`). Deliberately sparse — the wide-priors,
+   evidence-gated regime the production platform actually operates in.
 
 ## 🛠️ Implementation Phases
 
 | Phase | Period | Focus | Status |
 |-------|--------|-------|--------|
-| 1 | Feb–Apr | Data Engineering & Statistical Foundations | 🔄 In Progress |
-| 2 | May–Jul | Bayesian Statistics Mastery (uncertainty quantification) | ⏳ Planned |
-| 3 | Aug–Oct | Deep Learning from Scratch | ⏳ Planned |
-| 4 | Nov–Dec | XAI Integration | ⏳ Planned |
+| 1 | Feb–Apr | Data engineering, statistical foundations, robust anomaly detection (MAD), agro-met (ET0/THI/SPI) | 🔄 In Progress |
+| 2 | May–Jul | Bayesian milestones mirroring production: hierarchical yield, state-space/Kalman, discrete-time survival — NumPy → PyMC → compare | ⏳ Planned |
+| 3 | Aug–Oct | Deep Learning from Scratch + Bayesian DL prerequisites (MC Dropout, calibration) | ⏳ Planned |
+| 4 | Nov–Dec | XAI Integration & Kilifi capstone | ⏳ Planned |
 
 ## ✅ Quality & Verification
 
