@@ -12,7 +12,7 @@
 #
 # Options:
 #   -o FILE   output report path (required; convention: reviews/glm/<slug>.md)
-#   -m MODEL  GLM model (default 'glm-5.2[1m]' — brackets = 1M context; or set GLM_MODEL)
+#   -m MODEL  GLM model (default 'glm-4.7' — budget-friendly (use glm-5.2[1m] for 1M context); or set GLM_MODEL)
 #   -p FILE   read the prompt from FILE instead of stdin
 
 set -eo pipefail
@@ -22,7 +22,7 @@ trap 'rc=$?; echo "glm_review.sh: aborted at line $LINENO (exit $rc)" >&2' ERR
 NODE_BIN="$(ls -d "$HOME"/.nvm/versions/node/*/bin 2>/dev/null | sort -V | tail -1 || true)"
 if [ -n "$NODE_BIN" ]; then export PATH="$NODE_BIN:$PATH"; fi
 
-MODEL="${GLM_MODEL:-glm-5.2[1m]}"; OUT=""; PROMPT_FILE=""
+MODEL="${GLM_MODEL:-glm-4.7}"; OUT=""; PROMPT_FILE=""
 while [ $# -gt 0 ]; do
   case "$1" in
     -o) OUT="$2"; shift 2;;

@@ -7,7 +7,7 @@
 #   glm-shell                                               # interactive GLM session
 #   glm-shell --dangerously-skip-permissions "$(cat p.txt)"
 #   glm-shell -p "quick one-shot question"
-# Model: default 'glm-5.2[1m]' (1M context); override with  GLM_MODEL=<model> glm-shell ...
+# Model: default 'glm-4.7' (budget-friendly); override with  GLM_MODEL=<model> glm-shell ...
 set -eo pipefail
 
 # The claude CLI is a `#!/usr/bin/env node` script; make sure nvm node is on PATH.
@@ -19,7 +19,7 @@ command -v claude >/dev/null || { echo "glm-shell: claude CLI not found on PATH"
 KEY="${ZAI_API_KEY:-$(grep -oP 'ZAI_API_KEY="\K[^"]+' "$HOME/.bashrc" 2>/dev/null | tail -1 || true)}"
 [ -n "$KEY" ] || { echo "glm-shell: ZAI_API_KEY not set and not found in ~/.bashrc" >&2; exit 3; }
 
-MODEL="${GLM_MODEL:-glm-5.2[1m]}"
+MODEL="${GLM_MODEL:-glm-4.7}"
 export ANTHROPIC_BASE_URL="https://api.z.ai/api/anthropic"
 export ANTHROPIC_AUTH_TOKEN="$KEY"
 export ANTHROPIC_MODEL="$MODEL"

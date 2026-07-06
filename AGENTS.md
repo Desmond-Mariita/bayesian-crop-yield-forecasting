@@ -22,7 +22,7 @@ existence-check + provenance; the agentic backends also read them from the repo)
 | `claude_review.sh` | Claude (`sonnet`; subscription→API) | reads repo itself | read-only | 500s |
 | `codex_review.sh` | Codex (GPT-5.x; subscription→API) | reads repo itself | read-only | **900s** (slowest) |
 | `kimi_review.sh` | Kimi (`kimi-k2.6`) via Claude harness @ `api.moonshot.ai/anthropic` | reads repo itself | read-only | 500s |
-| `glm_review.sh` | GLM (`glm-5.2`) via Claude harness @ `api.z.ai/api/anthropic` | reads repo itself | read-only | 500s |
+| `glm_review.sh` | GLM (`glm-4.7`) via Claude harness @ `api.z.ai/api/anthropic` | reads repo itself | read-only | 500s |
 | `reconcile_reviews.sh` | merges the above (synthesis via DeepSeek) | inlined | — | 200s |
 
 Uniform invocation:
