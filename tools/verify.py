@@ -106,6 +106,9 @@ def run_checks(root: Path, src: str, tests: str) -> List[Dict[str, object]]:
     rc, out = _run([sys.executable, "tools/check_data_cards.py"], root)
     checks.append({"name": "data-cards", "hard": True, "status": _status(rc, out), "detail": out})
 
+    rc, out = _run([sys.executable, "tools/check_notebooks.py"], root)
+    checks.append({"name": "notebooks", "hard": True, "status": _status(rc, out), "detail": out})
+
     rc, out = _run([sys.executable, "-m", "flake8", src, tests], root)
     checks.append({"name": "flake8", "hard": True, "status": _status(rc, out), "detail": out})
 

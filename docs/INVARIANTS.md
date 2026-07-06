@@ -18,6 +18,7 @@ finding that cites an invariant violation is a blocker.
 | LINV-007 | **Domain constants carry provenance.** Every domain number (yield band, threshold, season window) lives in config with a `basis`/reference field — no magic numbers in code. | `docs/DEVELOPER_GUIDELINES.txt`; `tools/check_guidelines.py`; review |
 | LINV-008 | **Determinism.** All stochastic code takes an explicit seed, logs it, and reproduces results bit-for-bit under the same seed. | unit tests; `docs/DEVELOPER_GUIDELINES.txt` §5 |
 | LINV-009 | **Evidence before claims.** No task is "done" without a saved, timestamped verification report (`reports/verification/`) or evidence artifact under `reports/`. | `tools/verify.py`; CLAUDE.md |
+| LINV-010 | **Every graduated curriculum module ships a companion notebook** at the mirrored path under `notebooks/` (e.g. `src/statistics/descriptive.py` → `notebooks/statistics/descriptive.ipynb`), following `notebooks/TEMPLATE.ipynb`: motivation, mathematics (LaTeX), the shipped source displayed via `inspect.getsource` (never a pasted copy — copies drift), a seeded worked example, pitfalls. Graduation = implementation + real unit tests + companion notebook, same week. Notebook *execution* enforcement (nbmake) activates once the first companion notebook exists. Infrastructure modules (e.g. `src/xai`) are exempt unless opted into `EXTRA_MODULES`. | `tools/check_notebooks.py` in `tools/verify.py` + CI; graduation ledger = `IMPLEMENTED` in `tests/unit/test_stub_contracts.py` |
 
 ## Violation procedure
 

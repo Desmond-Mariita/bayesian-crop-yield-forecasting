@@ -27,6 +27,10 @@ jobs:
       - name: Data cards gate
         run: python tools/check_data_cards.py
 
+      # HARD GATE — companion notebooks for graduated modules (LINV-010)
+      - name: Companion notebooks gate
+        run: python tools/check_notebooks.py
+
       # HARD GATE — imports / unused / style
       - name: flake8
         run: flake8 src tests
