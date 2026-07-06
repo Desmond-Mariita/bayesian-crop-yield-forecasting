@@ -37,9 +37,9 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/Desmond-Mariita/bayesrisk"
-Documentation = "https://github.com/Desmond-Mariita/bayesrisk#readme"
-Repository = "https://github.com/Desmond-Mariita/bayesrisk.git"
+Homepage = "https://github.com/Desmond-Mariita/bayesian-crop-yield-forecasting"
+Documentation = "https://github.com/Desmond-Mariita/bayesian-crop-yield-forecasting#readme"
+Repository = "https://github.com/Desmond-Mariita/bayesian-crop-yield-forecasting.git"
 
 [tool.black]
 line-length = 100
