@@ -106,23 +106,38 @@ fi
 [ -n "$MODEL" ] && gemini_args+=(--model "$MODEL")
 echo ">>> gemini ($mode) -> $OUT" >&2
 
-if ! gemini "${gemini_args[@]}" --prompt "$PROMPT" </dev/null >"$raw" 2>"$err"; then
-  echo "FAILED (gemini):" >&2
-  sed 's/^/    /' "$err" >&2
+# Gemini intermittently returns narration-only / EMPTY stdout with exit 0 — the "self-assured
+# loop" (gemini-cli #16423) — and the wrapper used to write a header-only (silently empty)
+# report while discarding the deleted-on-exit temp files. So: RETRY on an empty body, and if it
+# stays empty, FAIL LOUDLY with the raw evidence so callers / reconcile / retry logic catch it.
+# Tune attempts with GEMINI_MAX_TRIES (default 3).
+MAX_TRIES="${GEMINI_MAX_TRIES:-3}"; clean=""; attempt=0
+while [ "$attempt" -lt "$MAX_TRIES" ]; do
+  attempt=$((attempt+1))
+  if ! gemini "${gemini_args[@]}" --prompt "$PROMPT" </dev/null >"$raw" 2>"$err"; then
+    echo "FAILED (gemini) attempt $attempt/$MAX_TRIES:" >&2; sed 's/^/    /' "$err" >&2
+    [ "$attempt" -lt "$MAX_TRIES" ] && { echo "    retrying…" >&2; sleep 2; continue; }
+    exit 1
+  fi
+  # Clean CLI/system noise. READ-ONLY also strips "I will…/Let me…" narration and starts at the
+  # first heading; EXEC keeps narration (it is the evidence of what Gemini actually ran).
+  if [ "$EXEC" = 1 ]; then
+    clean="$(grep -vE "^(Warning:|Approval mode |Ripgrep|Loaded cached|Data collection|\(node:[0-9]+\)|\(Use \`node)" "$raw" | sed '/./,$!d' || true)"
+    [ -n "$clean" ] || clean="$(cat "$raw")"
+  else
+    body="$(grep -vE "^(Warning:|Approval mode |Ripgrep|Loaded cached|Data collection|\(node:[0-9]+\)|\(Use \`node|Error executing tool |I will |I'll |Let me |First, I |Next, I |Now I |I am going to |I need to )" "$raw" || true)"
+    clean="$(printf '%s\n' "$body" | awk 'f||/^#/{f=1} f')"
+    [ -n "$clean" ] || clean="$(printf '%s\n' "$body" | sed '/./,$!d')"
+  fi
+  [ -n "$(printf '%s' "$clean" | tr -d '[:space:]')" ] && break
+  echo "gemini: EMPTY body (attempt $attempt/$MAX_TRIES) — narration-only/empty-final (#16423); retrying…" >&2
+  clean=""; sleep 2
+done
+if [ -z "$(printf '%s' "$clean" | tr -d '[:space:]')" ]; then
+  echo "FAILED (gemini): empty body after $MAX_TRIES attempts (self-assured-loop / empty-final, gemini-cli #16423)." >&2
+  echo "    --- last raw stdout (head) ---" >&2; head -40 "$raw" | sed 's/^/    /' >&2
+  echo "    --- last stderr (tail) ---"     >&2; tail -20 "$err" | sed 's/^/    /' >&2
   exit 1
-fi
-
-# Clean CLI/system noise off stdout. In READ-ONLY mode we also strip the "I will…/Let me…"
-# tool-call narration for a tidy report and start at the first heading. In EXEC mode we KEEP
-# that narration on purpose — it's the evidence of what Gemini actually ran, and hiding it
-# would mask the exact shallowness we're trying to catch (gemini-cli #16423).
-if [ "$EXEC" = 1 ]; then
-  clean="$(grep -vE "^(Warning:|Approval mode |Ripgrep|Loaded cached|Data collection|\(node:[0-9]+\)|\(Use \`node)" "$raw" | sed '/./,$!d' || true)"
-  [ -n "$clean" ] || clean="$(cat "$raw")"
-else
-  body="$(grep -vE "^(Warning:|Approval mode |Ripgrep|Loaded cached|Data collection|\(node:[0-9]+\)|\(Use \`node|Error executing tool |I will |I'll |Let me |First, I |Next, I |Now I |I am going to |I need to )" "$raw" || true)"
-  clean="$(printf '%s\n' "$body" | awk 'f||/^#/{f=1} f')"
-  [ -n "$clean" ] || clean="$(printf '%s\n' "$body" | sed '/./,$!d')"
 fi
 
 mkdir -p "$(dirname "$OUT")"
