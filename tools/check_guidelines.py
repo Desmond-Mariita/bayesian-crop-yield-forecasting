@@ -14,6 +14,7 @@ Enforced rules (from DEVELOPER_GUIDELINES.txt §3 Code Quality and §4 Architect
   * No ``print(...)`` calls (use the ``logging`` module).
   * No wildcard ``from x import *``; module-level imports must sit at the top of the file.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -36,7 +37,9 @@ def _non_self_args(node: FuncNode) -> List[ast.arg]:
         The parameter nodes that are not ``self`` or ``cls``.
     """
     a = node.args
-    return [arg for arg in (a.posonlyargs + a.args + a.kwonlyargs) if arg.arg not in {"self", "cls"}]
+    return [
+        arg for arg in (a.posonlyargs + a.args + a.kwonlyargs) if arg.arg not in {"self", "cls"}
+    ]
 
 
 def _has_non_none_return(node: FuncNode) -> bool:
@@ -89,10 +92,18 @@ def _check_def(node: FuncNode, path: str, out: List[Violation]) -> None:
         if _non_self_args(node) and "args:" not in low:
             out.append((path, node.lineno, f"'{node.name}': docstring missing 'Args:' section"))
         if _has_non_none_return(node) and "returns:" not in low and "yields:" not in low:
-            out.append((path, node.lineno, f"'{node.name}': docstring missing a 'Returns:'/'Yields:' section"))
+            out.append(
+                (
+                    path,
+                    node.lineno,
+                    f"'{node.name}': docstring missing a 'Returns:'/'Yields:' section",
+                )
+            )
     for arg in _non_self_args(node):
         if arg.annotation is None:
-            out.append((path, node.lineno, f"'{node.name}': parameter '{arg.arg}' missing type hint"))
+            out.append(
+                (path, node.lineno, f"'{node.name}': parameter '{arg.arg}' missing type hint")
+            )
     if node.returns is None:
         out.append((path, node.lineno, f"'{node.name}': missing return type hint"))
 
@@ -123,7 +134,11 @@ def check_file(path: Path) -> List[Violation]:
                     _check_def(item, str(path), out)
 
     for node in ast.walk(tree):
-        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == "print":
+        if (
+            isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Name)
+            and node.func.id == "print"
+        ):
             out.append((str(path), node.lineno, "print() call — use the logging module"))
         if isinstance(node, ast.ImportFrom) and any(alias.name == "*" for alias in node.names):
             out.append((str(path), node.lineno, "wildcard 'import *' is not allowed"))

@@ -1,0 +1,28 @@
+# Project Invariants — bayesian-crop-yield-forecasting
+
+**Version:** 1.0
+**Status:** AUTHORITATIVE
+
+Adapted in miniature from `keragita-farm-intelligence/docs/INVARIANTS.md` (the production
+platform this repo trains for). These invariants MUST hold across all phases. A review
+finding that cites an invariant violation is a blocker.
+
+| ID | Invariant | Enforcement |
+|----|-----------|-------------|
+| LINV-001 | **XAI is first-class.** Every model exposes `explain_or_reject()` returning an `ExplanationCard` or a `RejectionCard` — never a bare point estimate, never an exception, never `None`. | `src/xai/` base contract; unit tests |
+| LINV-002 | **RejectionCard is a first-class output.** Below-gate or low-confidence predictions are withheld with a structured `RejectionCard`, not forced through with a warning. | `src/xai/gates.py`; unit tests |
+| LINV-003 | **Evidence gates before inference.** Each Bayesian milestone model declares an evidence gate (data thresholds) and a convergence gate (R-hat < 1.01, bulk/tail ESS > 400, 0 divergences) and may not be claimed "done" until both pass. | `src/xai/gates.py`; milestone checklists |
+| LINV-004 | **Missing data is a model input, not a removed row.** Absence indicators are explicit features; silent row deletion or silent imputation is a violation. | preprocessing tests; review |
+| LINV-005 | **Every dataset has a data card** (source, method, resolution, date range, known limitations, intended use) before any code consumes it. Every shipped model artifact has a model card with `prior_justification` and convergence diagnostics. | `tools/check_data_cards.py` in `tools/verify.py` + CI |
+| LINV-006 | **Wide priors until data justifies otherwise.** No tight priors on thin data; priors are documented and justified in the model card. | model cards; review |
+| LINV-007 | **Domain constants carry provenance.** Every domain number (yield band, threshold, season window) lives in config with a `basis`/reference field — no magic numbers in code. | `docs/DEVELOPER_GUIDELINES.txt`; `tools/check_guidelines.py`; review |
+| LINV-008 | **Determinism.** All stochastic code takes an explicit seed, logs it, and reproduces results bit-for-bit under the same seed. | unit tests; `docs/DEVELOPER_GUIDELINES.txt` §5 |
+| LINV-009 | **Evidence before claims.** No task is "done" without a saved, timestamped verification report (`reports/verification/`) or evidence artifact under `reports/`. | `tools/verify.py`; CLAUDE.md |
+
+## Violation procedure
+
+1. Any reviewer (internal subagent or external backend) citing an invariant records it as
+   a Blocker.
+2. Work does not merge past a Blocker; the fix is verified by `tools/verify.py` (PASS).
+3. Changing an invariant itself requires Desmond's explicit approval, logged in
+   `research_log.md`.

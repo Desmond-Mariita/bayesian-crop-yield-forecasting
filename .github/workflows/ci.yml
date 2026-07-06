@@ -23,6 +23,10 @@ jobs:
       - name: Developer guidelines gate
         run: python tools/check_guidelines.py --paths src
 
+      # HARD GATE — data-card governance (LINV-005, docs/INVARIANTS.md)
+      - name: Data cards gate
+        run: python tools/check_data_cards.py
+
       # HARD GATE — imports / unused / style
       - name: flake8
         run: flake8 src tests
