@@ -96,6 +96,10 @@ Every change is gated **from commit one** by a git pre-commit hook and CI
   type hints, no `print`, imports at top — per `docs/DEVELOPER_GUIDELINES.txt`.
 - **Data cards** (`tools/check_data_cards.py`): every dataset ships a governance card in
   `docs/data_cards/` — LINV-005 in `docs/INVARIANTS.md`.
+- **Companion notebooks** (`tools/check_notebooks.py`): every implemented curriculum
+  module ships an explanatory notebook at the mirrored `notebooks/` path, built from
+  `notebooks/TEMPLATE.ipynb` (source displayed via `inspect.getsource`, never copied) —
+  LINV-010.
 - **flake8**, **black**, **mypy** (advisory), and **pytest with a ≥90% coverage gate**.
 - **Verification harness** (`tools/verify.py`) runs every gate and writes a timestamped,
   reviewable report to `reports/verification/` with a binary PASS/FAIL verdict.

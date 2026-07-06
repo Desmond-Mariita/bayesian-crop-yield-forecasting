@@ -7,8 +7,12 @@ two invariants:
 1. An unimplemented function fails loudly rather than silently returning wrong numbers
    (LINV-009 spirit — evidence before claims).
 2. The moment a stub is implemented, its contract test here FAILS. The implementer must
-   then move the callable's qualified name into ``IMPLEMENTED`` and write real unit
-   tests for it — a built-in TDD nudge.
+   then move the callable's qualified name into ``IMPLEMENTED``, write real unit tests
+   for it, and add the module's companion notebook (LINV-010) — a built-in TDD nudge.
+
+``IMPLEMENTED`` doubles as the graduation ledger read by ``tools/check_notebooks.py``,
+which demands a companion notebook at the mirrored ``notebooks/`` path for every module
+named here. Keep it a literal ``frozenset(...)`` call.
 """
 
 import importlib
