@@ -1,4 +1,4 @@
-# CLAUDE.md — bayesrisk
+# CLAUDE.md — bayesian-crop-yield-forecasting
 
 Guidance for Claude agents working in this repository. Review mechanics, the wrapper table,
 prompt design, model/auth details, and the `--exec` / `-A` flags live in `AGENTS.md` — read it.

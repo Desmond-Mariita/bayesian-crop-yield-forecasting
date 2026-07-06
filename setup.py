@@ -1,5 +1,5 @@
 """
-Setup configuration for BayesRisk package.
+Setup configuration for Bayesian Crop Yield Forecasting package.
 """
 
 from setuptools import setup, find_packages
@@ -10,14 +10,14 @@ readme_path = Path(__file__).parent / "README.md"
 long_description = readme_path.read_text(encoding="utf-8") if readme_path.exists() else ""
 
 setup(
-    name="bayesrisk",
+    name="bayesian-crop-yield-forecasting",
     version="0.1.0",
     author="Desmond Momanyi Mariita",
     author_email="dmariita@keragita.com",
     description="Crop Yield Forecasting with Uncertainty Quantification",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/your-github-username/bayesrisk",
+    url="https://github.com/Desmond-Mariita/bayesian-crop-yield-forecasting",
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     classifiers=[

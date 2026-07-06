@@ -1,6 +1,6 @@
-# AGENTS.md — bayesrisk
+# AGENTS.md — bayesian-crop-yield-forecasting
 
-Guidance for AI agents (Codex, Claude, etc.) working in this repository. bayesrisk uses a
+Guidance for AI agents (Codex, Claude, etc.) working in this repository. bayesian-crop-yield-forecasting uses a
 multi-backend independent-review setup: the `scripts/*_review.sh` wrappers dispatch one
 review prompt to several independent models and reconcile the results.
 

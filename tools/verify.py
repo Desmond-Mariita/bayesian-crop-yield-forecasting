@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verification harness for bayesrisk — runs every quality gate and writes a report.
+"""Verification harness for bayesian-crop-yield-forecasting — runs every quality gate and writes a report.
 
 This is the single command an agent runs to VERIFY the repository (developer guidelines,
 lint, format, type-check, tests + coverage). It writes a timestamped, human-reviewable
@@ -133,7 +133,7 @@ def render_markdown(checks: List[Dict[str, object]], ts: str, sha: str, dirty: b
     Returns:
         The report as a Markdown string.
     """
-    lines = ["# Verification Report — bayesrisk", "",
+    lines = ["# Verification Report — bayesian-crop-yield-forecasting", "",
              f"- **Generated (UTC):** {ts}",
              f"- **Git:** {sha}{' (dirty)' if dirty else ''}",
              f"- **Coverage gate:** >= {COV_FAIL_UNDER}%",
@@ -157,7 +157,7 @@ def main() -> int:
     Returns:
         0 if the overall verdict is PASS, 1 if FAIL.
     """
-    parser = argparse.ArgumentParser(description="bayesrisk verification harness")
+    parser = argparse.ArgumentParser(description="bayesian-crop-yield-forecasting verification harness")
     parser.add_argument("--src", default="src", help="Source directory")
     parser.add_argument("--tests", default="tests", help="Tests directory")
     args = parser.parse_args()
@@ -173,7 +173,7 @@ def main() -> int:
 
     outdir = root / "reports" / "verification"
     outdir.mkdir(parents=True, exist_ok=True)
-    report = {"project": "bayesrisk", "generated_utc": ts, "git_sha": sha, "git_dirty": dirty,
+    report = {"project": "bayesian-crop-yield-forecasting", "generated_utc": ts, "git_sha": sha, "git_dirty": dirty,
               "cov_fail_under": COV_FAIL_UNDER, "verdict": verdict, "checks": checks}
     (outdir / f"{ts}.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
     md = render_markdown(checks, ts, sha, dirty, verdict)

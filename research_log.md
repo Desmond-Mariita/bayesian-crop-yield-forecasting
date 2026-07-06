@@ -1,4 +1,4 @@
-# BayesRisk Research Log
+# Bayesian Crop Yield Forecasting Research Log
 
 **Author:** Desmond Momanyi Mariita  
 **Domain:** County-level crop yield forecasting (USDA NASS + public weather data)  

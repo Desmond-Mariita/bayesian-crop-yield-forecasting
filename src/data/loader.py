@@ -1,5 +1,5 @@
 """
-Data loading utilities for the BayesRisk project.
+Data loading utilities for the bayesian-crop-yield-forecasting project.
 
 This module provides functions to load and validate the assembled
 county x year crop yield dataset (USDA NASS yields joined with weather).
