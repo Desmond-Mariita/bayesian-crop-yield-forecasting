@@ -1,0 +1,55 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  guidelines-and-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install project + dev tooling
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      # HARD GATE — developer_guidelines.txt (docstrings, type hints, no print, imports)
+      - name: Developer guidelines gate
+        run: python tools/check_guidelines.py --paths src
+
+      # HARD GATE — imports / unused / style
+      - name: flake8
+        run: flake8 src tests
+
+      # HARD GATE — formatting
+      - name: black --check
+        run: black --check --line-length 100 src tests
+
+      # Advisory — deep type checking (reported, does not block)
+      - name: mypy
+        continue-on-error: true
+        run: mypy src
+
+      # Tests + coverage — enforces MedInsight's 90% coverage gate ONCE tests exist;
+      # deferred (passes) while the project has no tests yet, so it never blocks scaffolding.
+      - name: pytest + coverage gate (--cov-fail-under=90)
+        run: |
+          set +e
+          pytest --co -q >/dev/null 2>&1
+          if [ "$?" -eq 5 ]; then echo "no tests collected yet — coverage gate deferred until first test"; exit 0; fi
+          pytest -q --cov=src --cov-report=term-missing --cov-report=xml --cov-fail-under=90
+          exit $?
+
+      - name: Upload coverage report (verification artifact)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+          if-no-files-found: ignore

@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+#
+# kimi-shell — launch Claude Code driven by Kimi (Moonshot). Same harness, Kimi brain.
+# Plain `claude` in other tabs stays on Anthropic; this only affects the process it spawns.
+#
+# Usage:
+#   kimi-shell                                              # interactive Kimi session
+#   kimi-shell --dangerously-skip-permissions "$(cat p.txt)"
+#   kimi-shell -p "quick one-shot question"
+# Model: default kimi-k2.6; override with  KIMI_MODEL=<model> kimi-shell ...
+set -eo pipefail
+
+# The claude CLI is a `#!/usr/bin/env node` script; make sure nvm node is on PATH.
+NODE_BIN="$(ls -d "$HOME"/.nvm/versions/node/*/bin 2>/dev/null | sort -V | tail -1 || true)"
+if [ -n "$NODE_BIN" ]; then export PATH="$NODE_BIN:$PATH"; fi
+
+command -v claude >/dev/null || { echo "kimi-shell: claude CLI not found on PATH" >&2; exit 3; }
+
+KEY="${MOONSHOT_API_KEY:-$(grep -oP 'MOONSHOT_API_KEY="\K[^"]+' "$HOME/.bashrc" 2>/dev/null | tail -1 || true)}"
+[ -n "$KEY" ] || { echo "kimi-shell: MOONSHOT_API_KEY not set and not found in ~/.bashrc" >&2; exit 3; }
+
+MODEL="${KIMI_MODEL:-kimi-k2.6}"
+export ANTHROPIC_BASE_URL="https://api.moonshot.ai/anthropic"
+export ANTHROPIC_AUTH_TOKEN="$KEY"
+export ANTHROPIC_MODEL="$MODEL"
+export ANTHROPIC_DEFAULT_OPUS_MODEL="$MODEL"
+export ANTHROPIC_DEFAULT_SONNET_MODEL="$MODEL"
+export ANTHROPIC_DEFAULT_HAIKU_MODEL="$MODEL"
+export CLAUDE_CODE_SUBAGENT_MODEL="$MODEL"
+unset ANTHROPIC_API_KEY
+
+echo "kimi-shell: Claude Code harness + Kimi ($MODEL) via api.moonshot.ai" >&2
+exec claude "$@"

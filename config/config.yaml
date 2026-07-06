@@ -1,0 +1,26 @@
+# BayesRisk Configuration
+# Created: 2026-01-09
+
+project:
+  name: bayesrisk
+  author: Desmond Momanyi Mariita
+  version: 0.1.0
+
+data:
+  raw_path: data/raw
+  processed_path: data/processed
+  target_column: yield_bu_per_acre
+  classification_target: low_yield
+  sources:
+    nass_api: https://quickstats.nass.usda.gov/api
+    crops: [CORN, SOYBEANS]
+
+training:
+  test_size: 0.2
+  random_state: 42
+  
+# Phase 1 settings (no sklearn allowed!)
+phase1:
+  use_sklearn: false
+  use_tensorflow: false
+  use_pytorch: false

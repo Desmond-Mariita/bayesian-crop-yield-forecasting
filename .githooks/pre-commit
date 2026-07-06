@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Developer-guidelines gate — blocks commits that violate docs/DEVELOPER_GUIDELINES.txt.
+# Runs the same stdlib checker CI uses (no third-party deps). Emergency bypass:
+#   git commit --no-verify
+set -eo pipefail
+ROOT="$(git rev-parse --show-toplevel)"
+PY="$(command -v python3 || command -v python)"
+
+if [ -d "$ROOT/src" ] && [ -f "$ROOT/tools/check_guidelines.py" ]; then
+  if ! "$PY" "$ROOT/tools/check_guidelines.py" --paths "$ROOT/src"; then
+    echo "" >&2
+    echo "commit BLOCKED by the developer-guidelines gate (fix the violations above)." >&2
+    echo "to bypass in an emergency: git commit --no-verify" >&2
+    exit 1
+  fi
+fi

@@ -1,0 +1,40 @@
+{
+  "project": "bayesrisk",
+  "generated_utc": "2026-07-06T19-48-53Z",
+  "git_sha": "N/A",
+  "git_dirty": false,
+  "cov_fail_under": 90,
+  "verdict": "PASS",
+  "checks": [
+    {
+      "name": "developer-guidelines",
+      "hard": true,
+      "status": "PASS",
+      "detail": "PASS: developer guidelines clean (29 files checked)."
+    },
+    {
+      "name": "flake8",
+      "hard": true,
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "black",
+      "hard": true,
+      "status": "PASS",
+      "detail": "All done! \u2728 \ud83c\udf70 \u2728\n32 files would be left unchanged."
+    },
+    {
+      "name": "mypy",
+      "hard": false,
+      "status": "PASS",
+      "detail": "Success: no issues found in 29 source files"
+    },
+    {
+      "name": "pytest+coverage",
+      "hard": true,
+      "status": "DEFERRED",
+      "detail": "no tests collected yet \u2014 coverage gate deferred until the first test"
+    }
+  ]
+}

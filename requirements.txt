@@ -1,0 +1,43 @@
+# Core Scientific Computing
+numpy>=1.24.0
+pandas>=2.0.0
+
+# Visualization
+matplotlib>=3.7.0
+seaborn>=0.12.0
+plotly>=5.14.0
+
+# Jupyter
+jupyter>=1.0.0
+jupyterlab>=4.0.0
+ipykernel>=6.22.0
+
+# Testing
+pytest>=7.3.0
+pytest-cov>=4.0.0
+
+# Code Quality
+black>=23.3.0
+flake8>=6.0.0
+mypy>=1.2.0
+isort>=5.12.0
+
+# Documentation
+sphinx>=6.2.0
+sphinx-rtd-theme>=1.2.0
+
+# Utilities
+python-dotenv>=1.0.0
+tqdm>=4.65.0
+pyyaml>=6.0
+
+# Note: scikit-learn, tensorflow, pytorch are INTENTIONALLY EXCLUDED
+# for Phase 1-2. All algorithms must be implemented from scratch.
+
+# Phase 3+ (uncomment when needed):
+# scikit-learn>=1.2.0
+# torch>=2.0.0
+
+# Phase 4 (uncomment when needed):
+# streamlit>=1.22.0
+# gradio>=3.30.0

@@ -1,0 +1,45 @@
+DEVELOPER GUIDELINES (strict)
+
+1. Planning & Process (The "Think-First" Protocol)
+    • Plan Before Code: Do not implement everything in one shot. First, think through the logic and provide a numbered roadmap of small, trackable tasks.
+    • Checkpointing: Wait for user confirmation of the plan before executing the code.
+    • Pre-mortem: For every plan, identify the riskiest technical bottleneck or assumption (e.g., potential edge cases or library limitations).
+    • Atomic Iterations: Execute only 1–2 tasks per response to ensure focus and avoid truncation.
+
+2. Token Economy & Debugging
+    • Minimalist Responses: Omit conversational filler. Go straight to the logic or code.
+    • No Full-File Reprints: Use minimal diffs (<<<< OLD / >>>> NEW) unless a full rewrite is explicitly requested.
+    • Root-Cause First: Provide 2–5 lines explaining the "why" before any fix.
+    • Repro Steps: Provide exact commands to reproduce a bug and confirm the fix.
+
+3. Code Quality & Math Integrity
+    • Docstrings & Type Hints: Use Google-style docstrings (Args, Returns, Raises) and PEP 484 type hints everywhere.
+    • Math from Scratch: Implement roadmapped formulas manually; do not import high-level black-box solutions.
+    • LaTeX Standards: Always place LaTeX formulas in comments directly above their implementation.
+    • Small Functions: Prefer small, testable units with clear engineering reasoning in comments.
+    • Invariants: Encode assumptions using assert statements or specific unit tests.
+
+4. Architecture & File Handling
+    • Imports: All imports must be at the top, one per line, with no unused imports.
+    • Path Safety: Use pathlib.Path only; no string concatenation for paths.
+    • Constants & Config: No magic numbers; define constants at the top. Centralize configurations in configs/ and src/utils/config.py, supporting .env.
+    • Observability: Use the logging module for state changes; avoid print() statements.
+
+5. Tests, Determinism & Artifacts
+    • Mandatory Testing: Every new module requires at least one unit test and one integration/smoke check.
+    • Determinism: Fix and log random seeds to ensure reproducible results.
+    • Versioning: Save all outputs/artifacts under reports/ with timestamps and model tags.
+
+6. Git & Documentation Workflow
+    •Feature Branches: Always use git checkout -b feat/<short-name>.
+    • Commits: Use git add -A and git commit -m "feat: <description>".
+    • Merge Strategy: Prefer Rebase then Merge:
+       Bash
+        git checkout feat/<short-name>
+        git fetch origin
+        git rebase origin/main
+        git checkout main
+        git merge --no-ff feat/<short-name>
+        git push
+    • Project Health: Create issues for weekly tasks, update README badges (Tests/Coverage), and create tagged Releases (e.g., v0.1.0-phase1).
+    • Documentation Parity: Update README.md or docs/ immediately when features or configs change.

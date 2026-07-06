@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+#
+# glm-shell — launch Claude Code driven by GLM (Zhipu / Z.ai). Same harness, GLM brain.
+# Plain `claude` in other tabs stays on Anthropic; this only affects the process it spawns.
+#
+# Usage:
+#   glm-shell                                               # interactive GLM session
+#   glm-shell --dangerously-skip-permissions "$(cat p.txt)"
+#   glm-shell -p "quick one-shot question"
+# Model: default 'glm-5.2[1m]' (1M context); override with  GLM_MODEL=<model> glm-shell ...
+set -eo pipefail
+
+# The claude CLI is a `#!/usr/bin/env node` script; make sure nvm node is on PATH.
+NODE_BIN="$(ls -d "$HOME"/.nvm/versions/node/*/bin 2>/dev/null | sort -V | tail -1 || true)"
+if [ -n "$NODE_BIN" ]; then export PATH="$NODE_BIN:$PATH"; fi
+
+command -v claude >/dev/null || { echo "glm-shell: claude CLI not found on PATH" >&2; exit 3; }
+
+KEY="${ZAI_API_KEY:-$(grep -oP 'ZAI_API_KEY="\K[^"]+' "$HOME/.bashrc" 2>/dev/null | tail -1 || true)}"
+[ -n "$KEY" ] || { echo "glm-shell: ZAI_API_KEY not set and not found in ~/.bashrc" >&2; exit 3; }
+
+MODEL="${GLM_MODEL:-glm-5.2[1m]}"
+export ANTHROPIC_BASE_URL="https://api.z.ai/api/anthropic"
+export ANTHROPIC_AUTH_TOKEN="$KEY"
+export ANTHROPIC_MODEL="$MODEL"
+export ANTHROPIC_DEFAULT_OPUS_MODEL="$MODEL"
+export ANTHROPIC_DEFAULT_SONNET_MODEL="$MODEL"
+export ANTHROPIC_DEFAULT_HAIKU_MODEL="$MODEL"
+export CLAUDE_CODE_SUBAGENT_MODEL="$MODEL"
+unset ANTHROPIC_API_KEY
+
+echo "glm-shell: Claude Code harness + GLM ($MODEL) via api.z.ai" >&2
+exec claude "$@"

@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+#
+# deepseek-shell — launch Claude Code driven by DeepSeek (via api.deepseek.com/anthropic).
+# Same harness, DeepSeek brain. Plain `claude` in other tabs stays on Anthropic.
+# Uses DeepSeek's Anthropic-compatible endpoint (round-trips reasoning_content, so thinking
+# models work in multi-turn tool loops — unlike the OpenAI-compatible path).
+#
+# Usage:
+#   deepseek-shell                                              # interactive DeepSeek session
+#   deepseek-shell --dangerously-skip-permissions "$(cat p.txt)"
+#   deepseek-shell -p "quick one-shot question"
+# Model: default 'deepseek-v4-pro[1m]' (1M ctx); override with  DEEPSEEK_MODEL=<model> ...
+set -eo pipefail
+
+# The claude CLI is a `#!/usr/bin/env node` script; make sure nvm node is on PATH.
+NODE_BIN="$(ls -d "$HOME"/.nvm/versions/node/*/bin 2>/dev/null | sort -V | tail -1 || true)"
+if [ -n "$NODE_BIN" ]; then export PATH="$NODE_BIN:$PATH"; fi
+
+command -v claude >/dev/null || { echo "deepseek-shell: claude CLI not found on PATH" >&2; exit 3; }
+
+KEY="${DEEPSEEK_API_KEY:-$(grep -oP 'DEEPSEEK_API_KEY="\K[^"]+' "$HOME/.bashrc" 2>/dev/null | tail -1 || true)}"
+[ -n "$KEY" ] || { echo "deepseek-shell: DEEPSEEK_API_KEY not set and not found in ~/.bashrc" >&2; exit 3; }
+
+MODEL="${DEEPSEEK_MODEL:-deepseek-v4-pro[1m]}"
+export ANTHROPIC_BASE_URL="https://api.deepseek.com/anthropic"
+export ANTHROPIC_AUTH_TOKEN="$KEY"
+export ANTHROPIC_MODEL="$MODEL"
+export ANTHROPIC_DEFAULT_OPUS_MODEL="$MODEL"
+export ANTHROPIC_DEFAULT_SONNET_MODEL="$MODEL"
+export ANTHROPIC_DEFAULT_HAIKU_MODEL="deepseek-v4-flash"
+export CLAUDE_CODE_SUBAGENT_MODEL="deepseek-v4-flash"
+export CLAUDE_CODE_EFFORT_LEVEL="${CLAUDE_CODE_EFFORT_LEVEL:-max}"
+unset ANTHROPIC_API_KEY
+
+echo "deepseek-shell: Claude Code harness + DeepSeek ($MODEL) via api.deepseek.com/anthropic" >&2
+exec claude "$@"
