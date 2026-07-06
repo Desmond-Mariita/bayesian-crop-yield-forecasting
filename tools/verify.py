@@ -11,6 +11,7 @@ Verdict is PASS only when every HARD gate passes; a hard gate that is FAIL or wh
 UNAVAILABLE makes the verdict FAIL (halt-on-failure spirit). The coverage gate is deferred
 until the first test exists, then enforces ``--cov-fail-under``.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -98,29 +99,56 @@ def run_checks(root: Path, src: str, tests: str) -> List[Dict[str, object]]:
     checks: List[Dict[str, object]] = []
 
     rc, out = _run([sys.executable, "tools/check_guidelines.py", "--paths", src], root)
-    checks.append({"name": "developer-guidelines", "hard": True, "status": _status(rc, out), "detail": out})
+    checks.append(
+        {"name": "developer-guidelines", "hard": True, "status": _status(rc, out), "detail": out}
+    )
+
+    rc, out = _run([sys.executable, "tools/check_data_cards.py"], root)
+    checks.append({"name": "data-cards", "hard": True, "status": _status(rc, out), "detail": out})
 
     rc, out = _run([sys.executable, "-m", "flake8", src, tests], root)
     checks.append({"name": "flake8", "hard": True, "status": _status(rc, out), "detail": out})
 
-    rc, out = _run([sys.executable, "-m", "black", "--check", "--line-length", "100", src, tests], root)
+    rc, out = _run(
+        [sys.executable, "-m", "black", "--check", "--line-length", "100", src, tests], root
+    )
     checks.append({"name": "black", "hard": True, "status": _status(rc, out), "detail": out})
 
     rc, out = _run([sys.executable, "-m", "mypy", src], root)
     checks.append({"name": "mypy", "hard": False, "status": _status(rc, out), "detail": out})
 
     if not _tests_exist(root):
-        checks.append({"name": "pytest+coverage", "hard": True, "status": "DEFERRED",
-                       "detail": "no tests collected yet — coverage gate deferred until the first test"})
+        checks.append(
+            {
+                "name": "pytest+coverage",
+                "hard": True,
+                "status": "DEFERRED",
+                "detail": "no tests collected yet — coverage gate deferred until the first test",
+            }
+        )
     else:
-        rc, out = _run([sys.executable, "-m", "pytest", "-q", f"--cov={src}",
-                        "--cov-report=term-missing", f"--cov-fail-under={COV_FAIL_UNDER}"], root)
-        checks.append({"name": "pytest+coverage", "hard": True, "status": _status(rc, out), "detail": out})
+        rc, out = _run(
+            [
+                sys.executable,
+                "-m",
+                "pytest",
+                "-q",
+                f"--cov={src}",
+                "--cov-report=term-missing",
+                f"--cov-fail-under={COV_FAIL_UNDER}",
+            ],
+            root,
+        )
+        checks.append(
+            {"name": "pytest+coverage", "hard": True, "status": _status(rc, out), "detail": out}
+        )
 
     return checks
 
 
-def render_markdown(checks: List[Dict[str, object]], ts: str, sha: str, dirty: bool, verdict: str) -> str:
+def render_markdown(
+    checks: List[Dict[str, object]], ts: str, sha: str, dirty: bool, verdict: str
+) -> str:
     """Render the human-reviewable Markdown verification report.
 
     Args:
@@ -133,15 +161,24 @@ def render_markdown(checks: List[Dict[str, object]], ts: str, sha: str, dirty: b
     Returns:
         The report as a Markdown string.
     """
-    lines = ["# Verification Report — bayesian-crop-yield-forecasting", "",
-             f"- **Generated (UTC):** {ts}",
-             f"- **Git:** {sha}{' (dirty)' if dirty else ''}",
-             f"- **Coverage gate:** >= {COV_FAIL_UNDER}%",
-             f"- **Verdict:** {verdict}", "",
-             "| Check | Result | Note |", "|---|---|---|"]
+    lines = [
+        "# Verification Report — bayesian-crop-yield-forecasting",
+        "",
+        f"- **Generated (UTC):** {ts}",
+        f"- **Git:** {sha}{' (dirty)' if dirty else ''}",
+        f"- **Coverage gate:** >= {COV_FAIL_UNDER}%",
+        f"- **Verdict:** {verdict}",
+        "",
+        "| Check | Result | Note |",
+        "|---|---|---|",
+    ]
     for c in checks:
         name = c["name"] if c["hard"] else f"{c['name']} (advisory)"
-        note = "no tests yet" if c["status"] == "DEFERRED" else ("" if c["status"] == "PASS" else "see details")
+        note = (
+            "no tests yet"
+            if c["status"] == "DEFERRED"
+            else ("" if c["status"] == "PASS" else "see details")
+        )
         lines.append(f"| {name} | {c['status']} | {note} |")
     lines.append("")
     for c in checks:
@@ -157,7 +194,9 @@ def main() -> int:
     Returns:
         0 if the overall verdict is PASS, 1 if FAIL.
     """
-    parser = argparse.ArgumentParser(description="bayesian-crop-yield-forecasting verification harness")
+    parser = argparse.ArgumentParser(
+        description="bayesian-crop-yield-forecasting verification harness"
+    )
     parser.add_argument("--src", default="src", help="Source directory")
     parser.add_argument("--tests", default="tests", help="Tests directory")
     args = parser.parse_args()
@@ -173,8 +212,15 @@ def main() -> int:
 
     outdir = root / "reports" / "verification"
     outdir.mkdir(parents=True, exist_ok=True)
-    report = {"project": "bayesian-crop-yield-forecasting", "generated_utc": ts, "git_sha": sha, "git_dirty": dirty,
-              "cov_fail_under": COV_FAIL_UNDER, "verdict": verdict, "checks": checks}
+    report = {
+        "project": "bayesian-crop-yield-forecasting",
+        "generated_utc": ts,
+        "git_sha": sha,
+        "git_dirty": dirty,
+        "cov_fail_under": COV_FAIL_UNDER,
+        "verdict": verdict,
+        "checks": checks,
+    }
     (outdir / f"{ts}.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
     md = render_markdown(checks, ts, sha, dirty, verdict)
     (outdir / f"{ts}.md").write_text(md, encoding="utf-8")

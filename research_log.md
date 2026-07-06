@@ -1,8 +1,14 @@
 # Bayesian Crop Yield Forecasting Research Log
 
 **Author:** Desmond Momanyi Mariita  
-**Domain:** County-level crop yield forecasting (USDA NASS + public weather data)  
-**Goal:** From-scratch statistical, Bayesian, and deep learning mastery in 9 months
+**Domain:** Crop yield forecasting — USDA NASS + NASA POWER (volume track), CHIRPS +
+KALRO priors for the Keragita/Kilifi capstone (thin-data track)  
+**Goal:** Statistical, Bayesian, and deep learning mastery in 9 months, sufficient to
+comfortably operate the `keragita-farm-intelligence` production platform  
+**Charter:** derive every algorithm by hand (NumPy) first; rebuild each Bayesian
+milestone in PyMC/ArviZ and compare posteriors. Governance mirrors production in
+miniature: `docs/INVARIANTS.md`, data/model cards, ExplanationCard/RejectionCard,
+evidence gates. (Rationale: `reports/analysis/2026-07-06-kfi-borrow-analysis.md`.)
 
 ---
 
@@ -10,9 +16,9 @@
 
 | Phase | Period | Status | Completion |
 |-------|--------|--------|------------|
-| Phase 1: Data Engineering & Stats | Months 1–3 | 🔄 In Progress | 0% |
-| Phase 2: Bayesian Yield Modeling | Months 4–6 | ⏳ Not Started | 0% |
-| Phase 3: Deep Learning | Months 7–9 | ⏳ Not Started | 0% |
+| Phase 1: Data Engineering & Stats (+ MAD anomaly detection, agro-met) | Months 1–3 | 🔄 In Progress | 0% |
+| Phase 2: Bayesian Modeling (hierarchical yield → state-space → survival; NumPy → PyMC) | Months 4–6 | ⏳ Not Started | 0% |
+| Phase 3: Deep Learning (+ Bayesian DL prerequisites) | Months 7–9 | ⏳ Not Started | 0% |
 
 ---
 
