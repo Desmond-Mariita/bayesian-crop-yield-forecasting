@@ -37,9 +37,9 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/your-github-username/bayesrisk"
-Documentation = "https://github.com/your-github-username/bayesrisk#readme"
-Repository = "https://github.com/your-github-username/bayesrisk.git"
+Homepage = "https://github.com/Desmond-Mariita/bayesrisk"
+Documentation = "https://github.com/Desmond-Mariita/bayesrisk#readme"
+Repository = "https://github.com/Desmond-Mariita/bayesrisk.git"
 
 [tool.black]
 line-length = 100
