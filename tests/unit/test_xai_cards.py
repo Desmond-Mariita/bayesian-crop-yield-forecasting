@@ -143,3 +143,18 @@ class TestRejectionCard:
         """The three withholding reasons are all representable."""
         codes = {code.value for code in RejectionCode}
         assert codes == {"MISSING_DATA", "LOW_CONFIDENCE", "NOT_CONVERGED"}
+
+    def test_plain_string_rejection_code_rejected(self) -> None:
+        """The typed enum member is required — a plain string must not pass."""
+        with pytest.raises(ValueError, match="rejection_code"):
+            RejectionCard(
+                rejection_code="MISSING_DATA",  # type: ignore[arg-type]
+                recommendation="Record more seasons.",
+                data_source="manual_app",
+            )
+
+
+def test_plain_string_data_quality_rejected() -> None:
+    """The typed enum member is required — a plain string must not pass."""
+    with pytest.raises(ValueError, match="data_quality"):
+        ExplanationCard(**(_explanation_kwargs() | {"data_quality": "complete"}))

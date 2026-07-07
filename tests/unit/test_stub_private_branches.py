@@ -30,7 +30,13 @@ SCAFFOLD_PACKAGES = (
 
 @pytest.mark.parametrize("method", ["closed_form", "gradient_descent"])
 def test_linear_regression_both_fit_paths_are_stubs(method: str) -> None:
-    """Both fit dispatch branches terminate in NotImplementedError stubs."""
+    """Both fit dispatch branches terminate in NotImplementedError stubs.
+
+    The parametrized cases are independent: implementing ``closed_form`` (Week 9) fails
+    only that branch's case, which is then replaced by real tests — the
+    ``gradient_descent`` case keeps guarding its still-stub branch. Branches graduate
+    one at a time.
+    """
     with pytest.raises(NotImplementedError):
         LinearRegression(method=method).fit(X, Y)
 

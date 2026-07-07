@@ -120,6 +120,10 @@ class ExplanationCard:
         _require_non_empty(self.feature_pipeline_version, "feature_pipeline_version")
         _require_non_empty(self.data_source, "data_source")
         _require_confidence_in_range(self.confidence)
+        # A plain "complete" string must not pass for the enum — the structured-card
+        # contract requires the typed member.
+        if not isinstance(self.data_quality, DataQuality):
+            raise ValueError("data_quality must be a DataQuality enum member")
         # frozen=True only freezes attribute rebinding; recursively snapshot the payload
         # so neither the card's mapping nor any nested container can be mutated later.
         object.__setattr__(self, "technical_detail", _deep_freeze(dict(self.technical_detail)))
@@ -152,6 +156,8 @@ class RejectionCard:
         _require_non_empty(self.recommendation, "recommendation")
         _require_non_empty(self.data_source, "data_source")
         _require_confidence_in_range(self.confidence)
+        if not isinstance(self.rejection_code, RejectionCode):
+            raise ValueError("rejection_code must be a RejectionCode enum member")
         # A caller may pass a list; snapshot it so later mutation cannot leak in. A bare
         # string would silently become a tuple of characters — reject it explicitly.
         if isinstance(self.missing_requirements, (str, bytes)):
