@@ -19,4 +19,8 @@ from __future__ import annotations
 
 from typing import FrozenSet
 
-IMPLEMENTED: FrozenSet[str] = frozenset()
+IMPLEMENTED: FrozenSet[str] = frozenset(
+    {
+        "src.data.acquisition:download_nass_yields",  # Week 1, 2026-07-07
+    }
+)

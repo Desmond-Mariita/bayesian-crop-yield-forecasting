@@ -33,8 +33,10 @@ diagnostics visible while learning.
 ## Source
 
 Quickstats REST API (`https://quickstats.nass.usda.gov/api`). Requires a free API key
-(environment variable, never committed). Pull is implemented in
-`src/data/acquisition.py::download_nass_yields` (stub as of 2026-07-06).
+(`NASS_API_KEY` environment variable, never committed). Pull is implemented in
+`src/data/acquisition.py::download_nass_yields` (implemented 2026-07-07; county-level
+survey yields, suppressed values kept as NaN, every row tagged `api_nass`; companion
+notebook `notebooks/data/acquisition.ipynb`).
 
 ## Processing
 
