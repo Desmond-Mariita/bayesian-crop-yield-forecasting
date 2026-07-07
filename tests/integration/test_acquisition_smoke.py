@@ -13,9 +13,15 @@ from typing import Any
 import pandas as pd
 import pytest
 
-from src.data.acquisition import DATA_SOURCE_TAG, download_nass_yields
+from src.data.acquisition import (
+    DATA_SOURCE_TAG,
+    POWER_DATA_SOURCE_TAG,
+    download_nass_yields,
+    download_weather_data,
+)
 
 SAMPLE_PATH = Path("data/samples/nass_quickstats_sample.json")
+POWER_SAMPLE_PATH = Path("data/samples/nasa_power_sample.json")
 
 
 class FakeResponse(io.BytesIO):
@@ -51,6 +57,26 @@ def test_end_to_end_download_via_fake_http(monkeypatch: pytest.MonkeyPatch, tmp_
     saved = pd.read_csv(output_path)
     assert len(saved) == len(json.loads(body)["data"])
     assert (saved["data_source"] == DATA_SOURCE_TAG).all()
+
+
+def test_weather_end_to_end_via_fake_http(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """The POWER path — urlopen, JSON decode, tidy, tag, save — works together."""
+    body = POWER_SAMPLE_PATH.read_bytes()
+    seen_urls = []
+
+    def fake_urlopen(url: str, timeout: float) -> FakeResponse:
+        seen_urls.append(url)
+        return FakeResponse(body)
+
+    monkeypatch.setattr("urllib.request.urlopen", fake_urlopen)
+    output_path = download_weather_data(
+        latitude=42.03, longitude=-93.62, year_start=2021, year_end=2021, output_dir=tmp_path
+    )
+
+    assert "community=AG" in seen_urls[0]
+    saved = pd.read_csv(output_path)
+    assert len(saved) == 3
+    assert (saved["data_source"] == POWER_DATA_SOURCE_TAG).all()
 
 
 def test_http_failure_maps_to_connection_error(
