@@ -89,10 +89,16 @@ if [ "$AGENTIC" = 1 ]; then
 
   raw="$(mktemp)"; err="$(mktemp)"; trap 'rm -f "$raw" "$err"' EXIT
   echo ">>> deepseek:$MODEL (AGENTIC via Claude harness @ api.deepseek.com/anthropic, $mode) -> $OUT" >&2
-  if ! printf '%s' "$PROMPT" | claude -p --output-format text "${perm[@]}" --add-dir "$ROOT" >"$raw" 2>"$err"; then
+  # cd into $ROOT and DROP --add-dir (pre-indexing the whole tree each turn is slow on the
+  # Anthropic-compatible endpoint and can time out on big repos); cwd=$ROOT reads the repo fast.
+  if ! ( cd "$ROOT" && printf '%s' "$PROMPT" | claude -p --output-format text "${perm[@]}" >"$raw" 2>"$err" ); then
     echo "FAILED (deepseek via claude harness):" >&2; sed 's/^/    /' "$err" >&2; exit 1
   fi
   clean="$(sed '/./,$!d' "$raw")"; [ -n "$clean" ] || clean="$(cat "$raw")"
+  if [ -z "$(printf '%s' "$clean" | tr -d '[:space:]')" ]; then
+    echo "FAILED (deepseek): empty body — raw stdout head + stderr tail:" >&2
+    head -30 "$raw" | sed 's/^/    /' >&2; tail -15 "$err" | sed 's/^/    /' >&2; exit 1
+  fi
   mkdir -p "$(dirname "$OUT")"
   {
     printf '# %s\n\n' "$(basename "${OUT%.md}")"

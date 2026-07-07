@@ -64,9 +64,12 @@ unset ANTHROPIC_API_KEY
 raw="$(mktemp)"; err="$(mktemp)"
 trap 'rm -f "$raw" "$err"' EXIT
 
-# -p headless, text output, plan (read-only) permissions, repo root readable.
+# -p headless, text output, plan (read-only). Run FROM the repo root (cd) and DO NOT pass
+# --add-dir: --add-dir makes claude pre-index the whole tree each turn (much slower per call on
+# Anthropic-compatible endpoints), so multi-file reviews can blow past the timeout. cwd=$ROOT
+# lets claude read the repo directly; the subshell keeps the outer cwd (and -o path) intact.
 # The prompt is piped in on stdin (printf), which reaches EOF so the CLI won't block.
-if ! printf '%s' "$PROMPT" | claude -p --output-format text --permission-mode plan --add-dir "$ROOT" >"$raw" 2>"$err"; then
+if ! ( cd "$ROOT" && printf '%s' "$PROMPT" | claude -p --output-format text --permission-mode plan >"$raw" 2>"$err" ); then
   echo "FAILED (glm via claude harness):" >&2
   sed 's/^/    /' "$err" >&2
   exit 1
@@ -74,6 +77,11 @@ fi
 
 clean="$(sed '/./,$!d' "$raw")"
 [ -n "$clean" ] || clean="$(cat "$raw")"
+if [ -z "$(printf '%s' "$clean" | tr -d '[:space:]')" ]; then
+  echo "FAILED (glm): empty body — raw stdout head + stderr tail:" >&2
+  head -30 "$raw" | sed 's/^/    /' >&2; tail -15 "$err" | sed 's/^/    /' >&2
+  exit 1
+fi
 
 mkdir -p "$(dirname "$OUT")"
 {
