@@ -1,0 +1,59 @@
+{
+  "data": [
+    {
+      "year": 2021,
+      "state_alpha": "IA",
+      "county_name": "STORY",
+      "county_ansi": "169",
+      "commodity_desc": "CORN",
+      "statisticcat_desc": "YIELD",
+      "unit_desc": "BU / ACRE",
+      "source_desc": "SURVEY",
+      "Value": "203.6"
+    },
+    {
+      "year": 2021,
+      "state_alpha": "IA",
+      "county_name": "POLK",
+      "county_ansi": "153",
+      "commodity_desc": "CORN",
+      "statisticcat_desc": "YIELD",
+      "unit_desc": "BU / ACRE",
+      "source_desc": "SURVEY",
+      "Value": "198.4"
+    },
+    {
+      "year": 2022,
+      "state_alpha": "IL",
+      "county_name": "CHAMPAIGN",
+      "county_ansi": "019",
+      "commodity_desc": "CORN",
+      "statisticcat_desc": "YIELD",
+      "unit_desc": "BU / ACRE",
+      "source_desc": "SURVEY",
+      "Value": "1,234"
+    },
+    {
+      "year": 2022,
+      "state_alpha": "NE",
+      "county_name": "OTHER (COMBINED) COUNTIES",
+      "county_ansi": "",
+      "commodity_desc": "CORN",
+      "statisticcat_desc": "YIELD",
+      "unit_desc": "BU / ACRE",
+      "source_desc": "SURVEY",
+      "Value": "(D)"
+    },
+    {
+      "year": 2023,
+      "state_alpha": "KS",
+      "county_name": "RILEY",
+      "county_ansi": "161",
+      "commodity_desc": "CORN",
+      "statisticcat_desc": "YIELD",
+      "unit_desc": "BU / ACRE",
+      "source_desc": "SURVEY",
+      "Value": "128.9"
+    }
+  ]
+}
