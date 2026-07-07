@@ -1,0 +1,58 @@
+{
+  "project": "bayesian-crop-yield-forecasting",
+  "generated_utc": "2026-07-07T23-20-57Z",
+  "git_sha": "012f2af",
+  "git_dirty": true,
+  "cov_fail_under": 90,
+  "verdict": "PASS",
+  "checks": [
+    {
+      "name": "developer-guidelines",
+      "hard": true,
+      "status": "PASS",
+      "detail": "PASS: developer guidelines clean (35 files checked)."
+    },
+    {
+      "name": "data-cards",
+      "hard": true,
+      "status": "PASS",
+      "detail": "data-cards gate: PASS (3 card(s) valid)"
+    },
+    {
+      "name": "notebooks",
+      "hard": true,
+      "status": "PASS",
+      "detail": "graduation gate: PASS (1 module(s), 2 graduated name(s) with notebooks and dedicated tests)"
+    },
+    {
+      "name": "notebooks-execute",
+      "hard": true,
+      "status": "PASS",
+      "detail": "============================= test session starts ==============================\nplatform linux -- Python 3.11.15, pytest-9.1.1, pluggy-1.6.0\nrootdir: /home/manyee/Documents/bayesian-crop-yield-forecasting\nconfigfile: pyproject.toml\nplugins: cov-7.1.0, nbmake-1.5.5\ncollected 12 items\n\nnotebooks/TEMPLATE.ipynb .                                               [  8%]\nnotebooks/data/acquisition.ipynb .                                       [ 16%]\nnotebooks/exploration/01_initial_profiling.ipynb .                       [ 25%]\nnotebooks/exploration/02_missing_values.ipynb .                          [ 33%]\nnotebooks/exploration/03_encoding.ipynb .                                [ 41%]\nnotebooks/exploration/04_correlation.ipynb .                             [ 50%]\nnotebooks/exploration/05_hypothesis_tests.ipynb .                        [ 58%]\nnotebooks/exploration/06_outliers.ipynb .                                [ 66%]\nnotebooks/exploration/07_scaling.ipynb .                                 [ 75%]\nnotebooks/exploration/08_linear_regression.ipynb .                       [ 83%]\nnotebooks/exploration/09_logistic_regression.ipynb .                     [ 91%]\nnotebooks/exploration/10_regularization.ipynb .                          [100%]\n\n=============================== warnings summary ===============================\nnotebooks/TEMPLATE.ipynb::TEMPLATE.ipynb\nnotebooks/data/acquisition.ipynb::acquisition.ipynb\n  /home/manyee/Documents/bayesian-crop-yield-forecasting/.venv/lib/python3.11/site-packages/nbformat/__init__.py:96: MissingIDFieldWarning: Cell is missing an id field, this will become a hard error in future nbformat versions. You may want to use `normalize()` on your notebooks before validations (available since nbformat 5.1.4). Previous versions of nbformat are fixing this issue transparently, and will stop doing so in the future.\n    validate(nb)\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n\nLearn more about nbmake at https://github.com/treebeardtech/nbmake\n\n======================= 12 passed, 2 warnings in 16.02s ========================"
+    },
+    {
+      "name": "flake8",
+      "hard": true,
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "black",
+      "hard": true,
+      "status": "PASS",
+      "detail": "All done! \u2728 \ud83c\udf70 \u2728\n49 files would be left unchanged."
+    },
+    {
+      "name": "mypy",
+      "hard": false,
+      "status": "FAIL",
+      "detail": "src/data/acquisition.py:171: error: Argument 1 to \"_build_query_url\" has incompatible type \"str | None\"; expected \"str\"  [arg-type]\nFound 1 error in 1 file (checked 35 source files)"
+    },
+    {
+      "name": "pytest+coverage",
+      "hard": true,
+      "status": "PASS",
+      "detail": "============================= test session starts ==============================\nplatform linux -- Python 3.11.15, pytest-9.1.1, pluggy-1.6.0\nrootdir: /home/manyee/Documents/bayesian-crop-yield-forecasting\nconfigfile: pyproject.toml\ntestpaths: tests\nplugins: cov-7.1.0, nbmake-1.5.5\ncollected 163 items\n\ntests/integration/test_acquisition_smoke.py ......                       [  3%]\ntests/integration/test_xai_smoke.py ...                                  [  5%]\ntests/unit/test_acquisition.py .........                                 [ 11%]\ntests/unit/test_config.py .......                                        [ 15%]\ntests/unit/test_curriculum_ledger.py ...                                 [ 17%]\ntests/unit/test_stub_contracts.py ...................................... [ 40%]\n..........................                                               [ 56%]\ntests/unit/test_stub_private_branches.py ..........                      [ 62%]\ntests/unit/test_tools_checkers.py ............                           [ 69%]\ntests/unit/test_weather_acquisition.py ...........                       [ 76%]\ntests/unit/test_xai_cards.py ......................                      [ 90%]\ntests/unit/test_xai_gates.py ................                            [100%]\n\n================================ tests coverage ================================\n_______________ coverage: platform linux, python 3.11.15-final-0 _______________\n\nName                                      Stmts   Miss  Cover   Missing\n-----------------------------------------------------------------------\nsrc/__init__.py                               1      0   100%\nsrc/bayesian/__init__.py                      1      0   100%\nsrc/curriculum_ledger.py                      3      0   100%\nsrc/data/__init__.py                          1      0   100%\nsrc/data/acquisition.py                      99      1    99%   127\nsrc/data/loader.py                           12      0   100%\nsrc/metrics/__init__.py                       1      0   100%\nsrc/metrics/classification.py                16      0   100%\nsrc/metrics/regression.py                    11      0   100%\nsrc/model_selection/__init__.py               1      0   100%\nsrc/model_selection/cross_validation.py       8      0   100%\nsrc/models/__init__.py                        1      0   100%\nsrc/models/linear_regression.py              19      0   100%\nsrc/models/logistic_regression.py            19      0   100%\nsrc/models/regularized.py                    24      0   100%\nsrc/neural/__init__.py                        1      0   100%\nsrc/pipeline/__init__.py                      1      0   100%\nsrc/preprocessing/__init__.py                 1      0   100%\nsrc/preprocessing/encoders.py                19      0   100%\nsrc/preprocessing/imputers.py                20      0   100%\nsrc/preprocessing/outliers.py                 8      0   100%\nsrc/preprocessing/scalers.py                 21      0   100%\nsrc/reporting/__init__.py                     1      0   100%\nsrc/statistics/__init__.py                    1      0   100%\nsrc/statistics/correlation.py                 9      0   100%\nsrc/statistics/descriptive.py                14      0   100%\nsrc/statistics/hypothesis_tests.py           10      0   100%\nsrc/utils/__init__.py                         1      0   100%\nsrc/utils/config.py                          31      0   100%\nsrc/utils/validation.py                       4      0   100%\nsrc/visualization/__init__.py                 1      0   100%\nsrc/xai/__init__.py                           5      0   100%\nsrc/xai/base.py                               7      0   100%\nsrc/xai/cards.py                             64      0   100%\nsrc/xai/gates.py                             53      0   100%\n-----------------------------------------------------------------------\nTOTAL                                       489      1    99%\nCoverage XML written to file coverage.xml\nRequired test coverage of 90% reached. Total coverage: 99.80%\n============================= 163 passed in 0.74s =============================="
+    }
+  ]
+}

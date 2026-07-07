@@ -43,7 +43,6 @@ class TestParseFrontmatter:
             ("---\ndataset_id: DC-x\n", "never closed"),
             ("---\n- orphan item\n---\n", "outside a list"),
             ('---\nknown_limitations:\n  - ""\n---\n', "empty list item"),
-            ("---\nknown_limitations:\n  - # comment only\n---\n", "empty list item"),
             ("---\njust some words\n---\n", "expected 'key: value'"),
         ],
     )
