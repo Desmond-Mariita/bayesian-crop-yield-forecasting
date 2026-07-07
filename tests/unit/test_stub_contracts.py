@@ -13,6 +13,11 @@ two invariants:
 ``IMPLEMENTED`` doubles as the graduation ledger read by ``tools/check_notebooks.py``,
 which demands a companion notebook at the mirrored ``notebooks/`` path for every module
 named here. Keep it a literal ``frozenset(...)`` call.
+
+Coverage note: exercising every stub's ``raise`` line is what makes the >=90% coverage
+gate meaningful pre-implementation — the gate then measures that *new real code* is
+tested, because stub lines are already accounted for. Graduating a stub without real
+tests would drop coverage, not maintain it.
 """
 
 import importlib
@@ -161,11 +166,22 @@ def _class_cases(
 
         return invoke
 
+    def _property_invoker(property_name: str) -> Callable[[], Any]:
+        def invoke() -> Any:
+            instance = _call_with_dummies(cls)
+            return getattr(instance, property_name)
+
+        return invoke
+
     cases = []
     for method_name, member in vars(cls).items():
-        if method_name.startswith("_") or not inspect.isfunction(member):
+        if method_name.startswith("_"):
             continue
-        cases.append((f"{module_name}:{class_name}.{method_name}", _method_invoker(method_name)))
+        qualified = f"{module_name}:{class_name}.{method_name}"
+        if isinstance(member, property):
+            cases.append((qualified, _property_invoker(method_name)))
+        elif isinstance(member, (staticmethod, classmethod)) or inspect.isfunction(member):
+            cases.append((qualified, _method_invoker(method_name)))
     return cases
 
 
@@ -175,6 +191,18 @@ CASES = _collect_cases()
 def test_discovery_finds_the_curriculum_surface() -> None:
     """The scaffold's public API is discovered (guards against silent misdiscovery)."""
     assert len(CASES) >= 40
+
+
+def test_implemented_ledger_names_are_discovered() -> None:
+    """Every graduated name must match a discovered case (guards typos and stale entries).
+
+    A name in ``IMPLEMENTED`` that discovery cannot see would silently exempt nothing —
+    or worse, mask a misspelt graduation while the real stub stays contract-tested but
+    unimplemented-looking to ``tools/check_notebooks.py``.
+    """
+    discovered = {qualified_name for qualified_name, _ in CASES}
+    unknown = IMPLEMENTED - discovered
+    assert not unknown, f"IMPLEMENTED contains names discovery cannot see: {sorted(unknown)}"
 
 
 @pytest.mark.parametrize(("qualified_name", "invoke"), CASES, ids=[c[0] for c in CASES])

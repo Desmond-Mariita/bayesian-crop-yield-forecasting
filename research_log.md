@@ -3,8 +3,9 @@
 **Author:** Desmond Momanyi Mariita  
 **Domain:** Crop yield forecasting — USDA NASS + NASA POWER (volume track), CHIRPS +
 KALRO priors for the Keragita/Kilifi capstone (thin-data track)  
-**Goal:** Statistical, Bayesian, and deep learning mastery in 9 months, sufficient to
-comfortably operate the `keragita-farm-intelligence` production platform  
+**Goal:** Statistical, Bayesian, and deep learning mastery over Feb–Dec (three 3-month
+core phases + a 2-month XAI/capstone phase), sufficient to comfortably operate the
+`keragita-farm-intelligence` production platform  
 **Charter:** derive every algorithm by hand (NumPy) first; rebuild each Bayesian
 milestone in PyMC/ArviZ and compare posteriors. Governance mirrors production in
 miniature: `docs/INVARIANTS.md`, data/model cards, ExplanationCard/RejectionCard,

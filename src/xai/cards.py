@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import enum
 from dataclasses import dataclass, field
+from types import MappingProxyType
 from typing import Any, Mapping, Tuple
 
 CONFIDENCE_MIN: float = 0.0
@@ -90,7 +91,7 @@ class ExplanationCard:
     technical_detail: Mapping[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
-        """Validate field values at construction time.
+        """Validate field values and deep-freeze the technical payload.
 
         Raises:
             ValueError: If any required field is empty or confidence is out of range.
@@ -100,6 +101,9 @@ class ExplanationCard:
         _require_non_empty(self.feature_pipeline_version, "feature_pipeline_version")
         _require_non_empty(self.data_source, "data_source")
         _require_confidence_in_range(self.confidence)
+        # frozen=True only freezes attribute rebinding; snapshot + proxy the mapping so
+        # the card's contents cannot be mutated after construction either.
+        object.__setattr__(self, "technical_detail", MappingProxyType(dict(self.technical_detail)))
 
 
 @dataclass(frozen=True)

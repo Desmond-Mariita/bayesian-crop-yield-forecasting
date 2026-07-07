@@ -62,6 +62,16 @@ class TestExplanationCard:
         card = ExplanationCard(**_explanation_kwargs(), technical_detail=detail)
         assert card.technical_detail["r_hat"] == 1.002
 
+    def test_technical_detail_is_deeply_immutable(self) -> None:
+        """The payload is snapshotted and proxied: neither the card's mapping nor the
+        caller's original dict can change what the card reports."""
+        detail = {"posterior_mean": 2.1}
+        card = ExplanationCard(**_explanation_kwargs(), technical_detail=detail)
+        with pytest.raises(TypeError):
+            card.technical_detail["posterior_mean"] = 999.0  # type: ignore[index]
+        detail["posterior_mean"] = 999.0  # mutating the source dict must not leak in
+        assert card.technical_detail["posterior_mean"] == 2.1
+
 
 class TestRejectionCard:
     """Construction and validation of RejectionCard."""

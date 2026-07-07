@@ -66,7 +66,10 @@ def parse_frontmatter(text: str) -> Dict[str, FieldValue]:
                 raise ValueError(f"line {index}: list item outside a list field")
             existing = fields[current_list_key]
             assert isinstance(existing, list)
-            existing.append(stripped[2:].strip())
+            item = stripped[2:].strip().strip("\"'")
+            if not item:
+                raise ValueError(f"line {index}: empty list item in '{current_list_key}'")
+            existing.append(item)
             continue
         if ":" not in stripped:
             raise ValueError(f"line {index}: expected 'key: value', got {stripped!r}")
@@ -103,6 +106,8 @@ def validate_card(path: Path) -> List[str]:
         value = fields.get(field_name)
         if not isinstance(value, list) or not value:
             violations.append(f"{path}: '{field_name}' must be a non-empty list")
+        elif not all(isinstance(item, str) and item.strip() for item in value):
+            violations.append(f"{path}: '{field_name}' contains empty items")
     status = fields.get("status")
     if isinstance(status, str) and status and status not in ALLOWED_STATUS:
         violations.append(f"{path}: status must be one of {ALLOWED_STATUS}, got '{status}'")
