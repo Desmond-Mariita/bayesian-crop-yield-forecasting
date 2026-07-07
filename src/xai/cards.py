@@ -152,5 +152,11 @@ class RejectionCard:
         _require_non_empty(self.recommendation, "recommendation")
         _require_non_empty(self.data_source, "data_source")
         _require_confidence_in_range(self.confidence)
-        # A caller may pass a list; snapshot it so later mutation cannot leak in.
-        object.__setattr__(self, "missing_requirements", tuple(self.missing_requirements))
+        # A caller may pass a list; snapshot it so later mutation cannot leak in. A bare
+        # string would silently become a tuple of characters — reject it explicitly.
+        if isinstance(self.missing_requirements, (str, bytes)):
+            raise ValueError("missing_requirements must be a sequence of strings, not a string")
+        requirements = tuple(self.missing_requirements)
+        if not all(isinstance(item, str) and item.strip() for item in requirements):
+            raise ValueError("missing_requirements items must be non-empty strings")
+        object.__setattr__(self, "missing_requirements", requirements)
