@@ -65,9 +65,13 @@ unset ANTHROPIC_API_KEY
 raw="$(mktemp)"; err="$(mktemp)"
 trap 'rm -f "$raw" "$err"' EXIT
 
-# -p headless, text output, plan (read-only) permissions, repo root readable.
-# The prompt is piped in on stdin (printf), which reaches EOF so the CLI won't block.
-if ! printf '%s' "$PROMPT" | claude -p --output-format text --permission-mode plan --add-dir "$ROOT" >"$raw" 2>"$err"; then
+# -p headless, text output, plan (read-only). Run FROM the repo root (cd) and DO NOT pass
+# --add-dir: on Moonshot's endpoint --add-dir makes claude pre-index the whole tree each turn
+# (~9x slower per call — measured 54s vs 6s for one read), so a multi-file review blows past
+# the timeout and looks like a hang (interactive kimi-shell has no such timeout, hence it
+# "works"). cwd=$ROOT lets claude read the repo's files directly and fast. Subshell keeps the
+# outer cwd (and the -o output path) intact. Prompt on stdin (printf) EOFs so the CLI won't block.
+if ! ( cd "$ROOT" && printf '%s' "$PROMPT" | claude -p --output-format text --permission-mode plan >"$raw" 2>"$err" ); then
   echo "FAILED (kimi via claude harness):" >&2
   sed 's/^/    /' "$err" >&2
   exit 1
@@ -75,6 +79,11 @@ fi
 
 clean="$(sed '/./,$!d' "$raw")"
 [ -n "$clean" ] || clean="$(cat "$raw")"
+if [ -z "$(printf '%s' "$clean" | tr -d '[:space:]')" ]; then
+  echo "FAILED (kimi): empty body — raw stdout head + stderr tail:" >&2
+  head -30 "$raw" | sed 's/^/    /' >&2; tail -15 "$err" | sed 's/^/    /' >&2
+  exit 1
+fi
 
 mkdir -p "$(dirname "$OUT")"
 {
