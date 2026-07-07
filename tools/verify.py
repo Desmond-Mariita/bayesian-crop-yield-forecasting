@@ -138,6 +138,7 @@ def run_checks(root: Path, src: str, tests: str) -> List[Dict[str, object]]:
                 "-q",
                 f"--cov={src}",
                 "--cov-report=term-missing",
+                "--cov-report=xml",
                 f"--cov-fail-under={COV_FAIL_UNDER}",
             ],
             root,

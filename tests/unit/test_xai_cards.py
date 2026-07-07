@@ -94,6 +94,17 @@ class TestExplanationCard:
         requirements.append("n_counties")
         assert card.missing_requirements == ("n_complete_seasons",)
 
+    @pytest.mark.parametrize("bad", ["n_seasons", ("",), (42,)])
+    def test_malformed_missing_requirements_rejected(self, bad: object) -> None:
+        """A bare string or non-string/empty items raise instead of producing nonsense."""
+        with pytest.raises(ValueError, match="missing_requirements"):
+            RejectionCard(
+                rejection_code=RejectionCode.MISSING_DATA,
+                recommendation="Record more seasons.",
+                data_source="manual_app",
+                missing_requirements=bad,  # type: ignore[arg-type]
+            )
+
 
 class TestRejectionCard:
     """Construction and validation of RejectionCard."""

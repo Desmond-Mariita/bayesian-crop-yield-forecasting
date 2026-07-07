@@ -18,6 +18,12 @@ Coverage note: exercising every stub's ``raise`` line is what makes the >=90% co
 gate meaningful pre-implementation — the gate then measures that *new real code* is
 tested, because stub lines are already accounted for. Graduating a stub without real
 tests would drop coverage, not maintain it.
+
+Discovery-shape contract: the engine sees module-level functions and classes with
+DIRECTLY-DEFINED methods/properties (including static/class methods). Curriculum stubs
+must keep that shape — no inherited public methods, callable instances, or re-exported
+wrappers. Anything outside the shape must be added to ``EXPECTED_SURFACE`` with an
+explicit hand-written case, or the manifest test will not protect it.
 """
 
 import importlib
