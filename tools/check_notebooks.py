@@ -50,7 +50,9 @@ def read_graduation_ledger(ledger_path: Path) -> FrozenSet[str]:
     if not ledger_path.is_file():
         raise ValueError(f"graduation ledger not found: {ledger_path}")
     tree = ast.parse(ledger_path.read_text(encoding="utf-8"))
-    for node in ast.walk(tree):
+    # Only module top-level assignments count — a same-named local inside a function
+    # must never be mistaken for the ledger.
+    for node in tree.body:
         target = None
         if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
             target = node.target.id
