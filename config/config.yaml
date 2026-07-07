@@ -1,8 +1,8 @@
-# BayesRisk Configuration
+# Bayesian Crop Yield Forecasting Configuration
 # Created: 2026-01-09
 
 project:
-  name: bayesrisk
+  name: bayesian-crop-yield-forecasting
   author: Desmond Momanyi Mariita
   version: 0.1.0
 
