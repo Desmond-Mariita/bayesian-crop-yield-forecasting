@@ -90,7 +90,7 @@ reliability diagrams, temperature scaling), epistemic vs aleatoric uncertainty
 # Weekly Log
 
 ## Week 1: Environment Setup & Data Acquisition
-**Dates:** Feb 3-9, 2025
+**Dates:** Feb 3-9, 2026
 
 ### Objectives
 - [ ] Set up project structure
@@ -135,7 +135,7 @@ reliability diagrams, temperature scaling), epistemic vs aleatoric uncertainty
 ---
 
 ## Week 2: Missing Value Analysis & Imputation
-**Dates:** Feb 10-16, 2025
+**Dates:** Feb 10-16, 2026
 
 ### Objectives
 - [ ] Calculate missing value percentages
@@ -176,7 +176,7 @@ reliability diagrams, temperature scaling), epistemic vs aleatoric uncertainty
 <!-- Copy template below for additional weeks -->
 
 ## Week N: [Title]
-**Dates:** [Start] - [End], 2025
+**Dates:** [Start] - [End], 2026
 
 ### Objectives
 - [ ] Task 1

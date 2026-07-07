@@ -107,7 +107,9 @@ class ExplanationCard:
     model_version: str
     feature_pipeline_version: str
     data_source: str
-    technical_detail: Mapping[str, Any] = field(default_factory=dict)
+    # hash=False: the read-only proxy is unhashable; excluding it keeps frozen cards
+    # usable as dict keys / set members (equality still compares the full payload).
+    technical_detail: Mapping[str, Any] = field(default_factory=dict, hash=False)
 
     def __post_init__(self) -> None:
         """Validate field values and deep-freeze the technical payload.

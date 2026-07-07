@@ -10,7 +10,7 @@ divergences.
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from types import MappingProxyType
 from typing import Mapping, Optional, Tuple
 
@@ -37,8 +37,9 @@ class GateStatus:
     """
 
     met: bool
-    current: Mapping[str, int | float]
-    required: Mapping[str, int | float]
+    # hash=False on the proxy mappings keeps the frozen status hashable (see cards.py).
+    current: Mapping[str, int | float] = field(hash=False)
+    required: Mapping[str, int | float] = field(hash=False)
     missing: Tuple[str, ...]
 
     def __post_init__(self) -> None:

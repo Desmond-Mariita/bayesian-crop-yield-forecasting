@@ -85,6 +85,22 @@ class TestRecordsToFrame:
         with pytest.raises(ConnectionError, match="exceeds limit"):
             _records_to_frame({"error": ["exceeds limit of 50,000 records"]})
 
+    def test_empty_data_list_yields_empty_typed_frame(self) -> None:
+        """An empty result is not an error: full schema, zero rows, no KeyError."""
+        frame = _records_to_frame({"data": []})
+        assert len(frame) == 0
+        assert "yield_value" in frame.columns
+        assert "data_source" in frame.columns
+
+    def test_schema_shift_yields_nan_column_not_keyerror(
+        self, sample_payload: Dict[str, Any]
+    ) -> None:
+        """A payload missing 'Value' produces an all-NaN yield column, loudly logged."""
+        for record in sample_payload["data"]:
+            record.pop("Value")
+        frame = _records_to_frame(sample_payload)
+        assert frame["yield_value"].isna().all()
+
 
 class TestDownloadNassYields:
     """The public entry point, with fetching stubbed out."""
@@ -101,6 +117,12 @@ class TestDownloadNassYields:
         monkeypatch.setenv("NASS_API_KEY", "SECRET")
         with pytest.raises(ValueError, match="crop"):
             download_nass_yields(crop="BANANAS")
+
+    def test_prehistoric_year_start_raises(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """USDA statistics start in 1866; earlier requests fail before any network use."""
+        monkeypatch.setenv("NASS_API_KEY", "SECRET")
+        with pytest.raises(ValueError, match="year_start"):
+            download_nass_yields(year_start=1700)
 
     def test_downloads_and_writes_tagged_csv(
         self,
