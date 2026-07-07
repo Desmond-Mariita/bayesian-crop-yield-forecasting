@@ -110,6 +110,23 @@ def run_checks(root: Path, src: str, tests: str) -> List[Dict[str, object]]:
     rc, out = _run([sys.executable, "tools/check_notebooks.py"], root)
     checks.append({"name": "notebooks", "hard": True, "status": _status(rc, out), "detail": out})
 
+    if list((root / "notebooks").rglob("*.ipynb")):
+        rc, out = _run(
+            [sys.executable, "-m", "pytest", "-q", "--no-cov", "--nbmake", "notebooks"], root
+        )
+        checks.append(
+            {"name": "notebooks-execute", "hard": True, "status": _status(rc, out), "detail": out}
+        )
+    else:
+        checks.append(
+            {
+                "name": "notebooks-execute",
+                "hard": True,
+                "status": "DEFERRED",
+                "detail": "no notebooks yet — execution gate deferred until the first notebook",
+            }
+        )
+
     rc, out = _run([sys.executable, "-m", "flake8", src, tests], root)
     checks.append({"name": "flake8", "hard": True, "status": _status(rc, out), "detail": out})
 
@@ -180,7 +197,7 @@ def render_markdown(
     for c in checks:
         name = c["name"] if c["hard"] else f"{c['name']} (advisory)"
         note = (
-            "no tests yet"
+            "deferred"
             if c["status"] == "DEFERRED"
             else ("" if c["status"] == "PASS" else "see details")
         )

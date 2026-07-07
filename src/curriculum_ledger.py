@@ -22,5 +22,6 @@ from typing import FrozenSet
 IMPLEMENTED: FrozenSet[str] = frozenset(
     {
         "src.data.acquisition:download_nass_yields",  # Week 1, 2026-07-07
+        "src.data.acquisition:download_weather_data",  # Week 1, 2026-07-08
     }
 )
