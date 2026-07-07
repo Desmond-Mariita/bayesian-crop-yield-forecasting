@@ -7,10 +7,11 @@ agroclimatology API (curriculum decision: POWER is global, keyless, and
 the same source the keragita-farm-intelligence platform consumes — the
 acquisition code written here transfers directly to the Kilifi capstone).
 
-Every record written by this module carries a ``data_source`` column
-(``api_nass``) — mirroring the production platform's INV-006 "data source
-is always tagged" rule (see ``docs/INVARIANTS.md`` LINV-005 companion
-practice and ``docs/data_cards/DC-usda-nass-quickstats.md``).
+Every record written by this module carries a ``data_source`` column —
+``api_nass`` for Quick Stats rows, ``api_nasa_power`` for POWER rows —
+mirroring the production platform's INV-006 "data source is always tagged"
+rule (see ``docs/INVARIANTS.md`` LINV-005 companion practice and the cards
+``docs/data_cards/DC-usda-nass-quickstats.md`` / ``DC-nasapower-weather.md``).
 """
 
 import json
@@ -92,11 +93,11 @@ def _fetch_json(url: str) -> Dict[str, Any]:
         with urllib.request.urlopen(url, timeout=REQUEST_TIMEOUT_S) as response:
             body = response.read()
     except urllib.error.URLError as exc:
-        raise ConnectionError(f"NASS Quick Stats request failed: {exc}") from exc
+        raise ConnectionError(f"API request failed: {exc}") from exc
     try:
         payload: Dict[str, Any] = json.loads(body)
     except json.JSONDecodeError as exc:
-        raise ConnectionError(f"NASS Quick Stats returned invalid JSON: {exc}") from exc
+        raise ConnectionError(f"API returned invalid JSON: {exc}") from exc
     return payload
 
 
@@ -120,6 +121,9 @@ def _records_to_frame(payload: Dict[str, Any]) -> pd.DataFrame:
         raise ConnectionError(f"NASS Quick Stats error response: {payload}")
     frame = pd.DataFrame(payload["data"])
     columns = ["year", "state_alpha", "county_name", "county_ansi", "unit_desc", "Value"]
+    absent = [c for c in columns if c not in frame.columns]
+    if absent:
+        logger.warning("NASS payload missing expected columns %s — check the API schema", absent)
     frame = frame.loc[:, [c for c in columns if c in frame.columns]].rename(
         columns={"Value": "yield_value"}
     )

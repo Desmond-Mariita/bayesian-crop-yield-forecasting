@@ -6,7 +6,7 @@ status: draft
 data_source_tag: api_nass
 source_url: https://quickstats.nass.usda.gov/api
 collection_method: REST API pull (annual survey statistics)
-date_range: 2000-2025 (planned pull window)
+date_range: 1990-2025 (planned pull window; matches the code default year_start=1990)
 geographic_scope: US counties (corn belt states first)
 temporal_resolution: annual (county-year)
 phase: 1

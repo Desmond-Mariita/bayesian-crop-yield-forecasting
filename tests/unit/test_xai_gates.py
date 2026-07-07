@@ -38,6 +38,16 @@ class TestEvidenceGate:
         assert status.missing == ("n_complete_seasons", "n_counties")
         assert status.current == {"n_complete_seasons": 0.0, "n_counties": 0.0}
 
+    def test_absent_evidence_warns_loudly(self, caplog: pytest.LogCaptureFixture) -> None:
+        """Fail-closed but loud: absent keys are logged so key typos cannot hide."""
+        with caplog.at_level("WARNING", logger="src.xai.gates"):
+            YIELD_GATE.evaluate({"n_complete_seasons": 5})
+        assert "n_counties" in caplog.text
+        caplog.clear()
+        with caplog.at_level("WARNING", logger="src.xai.gates"):
+            YIELD_GATE.evaluate({"n_complete_seasons": 5, "n_counties": 12})
+        assert caplog.text == ""
+
     def test_boundary_value_meets_gate(self) -> None:
         """Evidence exactly at the threshold meets the gate (>= semantics)."""
         status = YIELD_GATE.evaluate({"n_complete_seasons": 3, "n_counties": 10})
