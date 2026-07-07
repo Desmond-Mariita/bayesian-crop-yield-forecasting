@@ -72,6 +72,28 @@ class TestExplanationCard:
         detail["posterior_mean"] = 999.0  # mutating the source dict must not leak in
         assert card.technical_detail["posterior_mean"] == 2.1
 
+    def test_nested_payload_is_recursively_frozen(self) -> None:
+        """Nested dicts become read-only proxies; nested lists become tuples."""
+        detail = {"priors": {"mu": 2500.0}, "chains": [1, 2, 3]}
+        card = ExplanationCard(**_explanation_kwargs(), technical_detail=detail)
+        with pytest.raises(TypeError):
+            card.technical_detail["priors"]["mu"] = 0.0  # type: ignore[index]
+        assert card.technical_detail["chains"] == (1, 2, 3)
+        detail["priors"]["mu"] = 0.0  # source mutation must not leak into the card
+        assert card.technical_detail["priors"]["mu"] == 2500.0
+
+    def test_missing_requirements_list_is_snapshotted(self) -> None:
+        """A caller-supplied list is coerced to a tuple; later mutation cannot leak in."""
+        requirements = ["n_complete_seasons"]
+        card = RejectionCard(
+            rejection_code=RejectionCode.MISSING_DATA,
+            recommendation="Record at least 3 complete crop seasons.",
+            data_source="manual_app",
+            missing_requirements=requirements,  # type: ignore[arg-type]
+        )
+        requirements.append("n_counties")
+        assert card.missing_requirements == ("n_complete_seasons",)
+
 
 class TestRejectionCard:
     """Construction and validation of RejectionCard."""

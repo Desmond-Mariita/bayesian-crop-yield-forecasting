@@ -209,9 +209,10 @@ def main() -> int:
     sha, dirty = _git_state(root)
     checks = run_checks(root, args.src, args.tests)
 
-    hard_fail = [c for c in checks if c["hard"] and c["status"] == "FAIL"]
-    hard_unavail = [c for c in checks if c["hard"] and c["status"] == "UNAVAILABLE"]
-    verdict = "FAIL" if hard_fail else ("INCOMPLETE" if hard_unavail else "PASS")
+    # Binary verdict, as documented: a hard gate that FAILs or whose tool is
+    # UNAVAILABLE both make the run FAIL (the table still shows which it was).
+    hard_bad = [c for c in checks if c["hard"] and c["status"] in {"FAIL", "UNAVAILABLE"}]
+    verdict = "FAIL" if hard_bad else "PASS"
 
     outdir = root / "reports" / "verification"
     outdir.mkdir(parents=True, exist_ok=True)

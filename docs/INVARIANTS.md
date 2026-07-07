@@ -7,6 +7,13 @@ Adapted in miniature from `keragita-farm-intelligence/docs/INVARIANTS.md` (the p
 platform this repo trains for). These invariants MUST hold across all phases. A review
 finding that cites an invariant violation is a blocker.
 
+**Enforcement legend — read the column honestly:** *automated gate* = a named tool runs
+in `tools/verify.py` + CI and blocks on violation (LINV-005, LINV-010 existence,
+LINV-003 convergence checks via unit-tested `src/xai/gates.py`); *tests* = enforced only
+as far as the test suite exercises it (LINV-001/002/008); *review* = human/agent review,
+no automation yet (LINV-004/006/007/009 in part). Rows state which applies; aspiration
+must never be dressed as CI.
+
 | ID | Invariant | Enforcement |
 |----|-----------|-------------|
 | LINV-001 | **XAI is first-class.** Every model exposes `explain_or_reject()` returning an `ExplanationCard` or a `RejectionCard` — never a bare point estimate, never an exception, never `None`. | `src/xai/` base contract; unit tests |
