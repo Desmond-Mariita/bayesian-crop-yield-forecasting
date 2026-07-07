@@ -24,6 +24,7 @@ from typing import Dict, List, Tuple
 
 COV_FAIL_UNDER: int = 90
 DETAIL_CHAR_LIMIT: int = 4000
+TEMPLATE_NOTEBOOK: str = "TEMPLATE.ipynb"
 
 
 def _run(cmd: List[str], cwd: Path) -> Tuple[int, str]:
@@ -110,9 +111,24 @@ def run_checks(root: Path, src: str, tests: str) -> List[Dict[str, object]]:
     rc, out = _run([sys.executable, "tools/check_notebooks.py"], root)
     checks.append({"name": "notebooks", "hard": True, "status": _status(rc, out), "detail": out})
 
-    if list((root / "notebooks").rglob("*.ipynb")):
+    # The template is authoring scaffolding, not a companion notebook: executing it
+    # would couple CI to whatever demo API its placeholder cells import.
+    companion_notebooks = [
+        p for p in (root / "notebooks").rglob("*.ipynb") if p.name != TEMPLATE_NOTEBOOK
+    ]
+    if companion_notebooks:
         rc, out = _run(
-            [sys.executable, "-m", "pytest", "-q", "--no-cov", "--nbmake", "notebooks"], root
+            [
+                sys.executable,
+                "-m",
+                "pytest",
+                "-q",
+                "--no-cov",
+                "--nbmake",
+                f"--ignore=notebooks/{TEMPLATE_NOTEBOOK}",
+                "notebooks",
+            ],
+            root,
         )
         checks.append(
             {"name": "notebooks-execute", "hard": True, "status": _status(rc, out), "detail": out}
@@ -123,7 +139,7 @@ def run_checks(root: Path, src: str, tests: str) -> List[Dict[str, object]]:
                 "name": "notebooks-execute",
                 "hard": True,
                 "status": "DEFERRED",
-                "detail": "no notebooks yet — execution gate deferred until the first notebook",
+                "detail": "no companion notebooks yet — execution gate deferred until the first one",
             }
         )
 
@@ -158,6 +174,7 @@ def run_checks(root: Path, src: str, tests: str) -> List[Dict[str, object]]:
                 "--cov-report=term-missing",
                 "--cov-report=xml",
                 f"--cov-fail-under={COV_FAIL_UNDER}",
+                tests,
             ],
             root,
         )

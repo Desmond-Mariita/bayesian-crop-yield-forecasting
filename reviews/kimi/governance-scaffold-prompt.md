@@ -1,6 +1,6 @@
 # Kimi manual-review prompt — governance-scaffold (v2, tree as of 2026-07-08)
 
-Usage (manual, while `scripts/kimi_review.sh` still stops at its plan-approval step):
+Usage — `scripts/kimi_review.sh --exec` now runs this headlessly (verified 2026-07-08: `--exec` auto-approves so Kimi writes the review to disk itself, no plan-approval stall). The manual paths below remain a fallback:
 - **Kimi CLI / agentic:** run from the repo root and paste everything below the line.
 - **Kimi web UI:** paste everything below the line and attach every file in the `Read:` list.
 - Save Kimi's response **verbatim** to `reviews/kimi/governance-scaffold-r2.md`

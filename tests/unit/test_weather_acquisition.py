@@ -127,7 +127,7 @@ class TestDownloadWeatherData:
             year_end=2021,
             output_dir=tmp_path,
         )
-        assert output_path == tmp_path / "nasa_power_daily_2021_2021.csv"
+        assert output_path == tmp_path / f"nasa_power_daily_{AMES_LAT}_{AMES_LON}_2021_2021.csv"
         saved = pd.read_csv(output_path)
         assert len(saved) == 3
         assert (saved["data_source"] == POWER_DATA_SOURCE_TAG).all()
@@ -138,7 +138,7 @@ class TestDownloadWeatherData:
         """A failed request surfaces as ConnectionError, as documented."""
 
         def boom(url: str) -> Dict[str, Any]:
-            raise ConnectionError("NASS Quick Stats request failed: timeout")
+            raise ConnectionError("API request failed: timeout")
 
         monkeypatch.setattr("src.data.acquisition._fetch_json", boom)
         with pytest.raises(ConnectionError, match="request failed"):

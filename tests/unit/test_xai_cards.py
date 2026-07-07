@@ -72,6 +72,14 @@ class TestExplanationCard:
         detail["posterior_mean"] = 999.0  # mutating the source dict must not leak in
         assert card.technical_detail["posterior_mean"] == 2.1
 
+    def test_cards_are_hashable(self) -> None:
+        """Frozen cards work as dict keys/set members; the payload is hash-excluded."""
+        card_a = ExplanationCard(**_explanation_kwargs(), technical_detail={"r_hat": 1.001})
+        card_b = ExplanationCard(**_explanation_kwargs(), technical_detail={"r_hat": 1.001})
+        assert hash(card_a) == hash(card_b)
+        assert card_a == card_b
+        assert len({card_a, card_b}) == 1
+
     def test_nested_payload_is_recursively_frozen(self) -> None:
         """Nested dicts become read-only proxies; nested lists become tuples."""
         detail = {"priors": {"mu": 2500.0}, "chains": [1, 2, 3]}

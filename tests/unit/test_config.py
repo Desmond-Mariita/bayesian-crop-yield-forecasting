@@ -59,6 +59,15 @@ class TestGetEnv:
         with pytest.raises(EnvironmentError, match="MY_KEY"):
             get_env("MY_KEY", required=True, env_file=tmp_path / ".env")
 
+    def test_empty_value_is_treated_as_unset(
+        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    ) -> None:
+        """KEY= (empty) behaves as unset — blank credentials must fail loudly."""
+        monkeypatch.setenv("MY_KEY", "")
+        with pytest.raises(EnvironmentError, match="MY_KEY"):
+            get_env("MY_KEY", required=True, env_file=tmp_path / ".env")
+        assert get_env("MY_KEY", default="fallback", env_file=tmp_path / ".env") == "fallback"
+
 
 def test_acquisition_accepts_env_file_key(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """Integration: a .env-supplied key satisfies download_nass_yields' key check.

@@ -62,6 +62,11 @@ def get_env(
     Raises:
         EnvironmentError: If ``required`` is True and the variable is set neither in
             the environment nor in the ``.env`` file.
+
+    Note:
+        An EMPTY value (``KEY=`` in the environment or ``.env``) is deliberately
+        treated as unset: an empty API key is never useful, and failing loudly beats
+        sending blank credentials.
     """
     value = os.environ.get(name)
     source = "environment"

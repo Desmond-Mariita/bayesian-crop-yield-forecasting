@@ -120,6 +120,11 @@ class TestConvergenceGate:
         assert status.current["divergences"] == 2
         assert isinstance(status.current["divergences"], int)
 
+    def test_status_is_hashable(self) -> None:
+        """GateStatus works as a set member despite its proxy mappings."""
+        status = evaluate_convergence(r_hat=1.001, ess_bulk=900.0, ess_tail=850.0, divergences=0)
+        assert isinstance(hash(status), int)
+
     def test_status_mappings_are_deeply_immutable(self) -> None:
         """GateStatus mappings cannot be mutated after construction."""
         status = evaluate_convergence(r_hat=1.001, ess_bulk=900.0, ess_tail=850.0, divergences=0)

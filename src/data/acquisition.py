@@ -41,6 +41,9 @@ AGG_LEVEL = "COUNTY"
 STATISTIC_CATEGORY = "YIELD"
 SOURCE_DESC = "SURVEY"
 
+# USDA publishes agricultural statistics from 1866 onwards.
+NASS_DATA_START_YEAR = 1866
+
 # NASA POWER daily agroclimatology (AG community units: T2M degC, RH2M %,
 # ALLSKY_SFC_SW_DWN MJ m^-2 day^-1, WS2M m s^-1).
 POWER_API_URL = "https://power.larc.nasa.gov/api/temporal/daily/point"
@@ -123,11 +126,11 @@ def _records_to_frame(payload: Dict[str, Any]) -> pd.DataFrame:
     frame = pd.DataFrame(payload["data"])
     columns = ["year", "state_alpha", "county_name", "county_ansi", "unit_desc", "Value"]
     absent = [c for c in columns if c not in frame.columns]
-    if absent:
+    if absent and not frame.empty:
         logger.warning("NASS payload missing expected columns %s — check the API schema", absent)
-    frame = frame.loc[:, [c for c in columns if c in frame.columns]].rename(
-        columns={"Value": "yield_value"}
-    )
+    # reindex, not filter: an empty result or a schema shift yields all-NaN columns
+    # instead of a KeyError further down.
+    frame = frame.reindex(columns=columns).rename(columns={"Value": "yield_value"})
     frame["yield_value"] = pd.to_numeric(
         frame["yield_value"].astype(str).str.replace(",", "", regex=False).str.strip(),
         errors="coerce",
@@ -154,7 +157,8 @@ def download_nass_yields(
 
     Raises:
         EnvironmentError: If the NASS_API_KEY environment variable is not set.
-        ValueError: If ``crop`` is not one of the supported ``CROPS``.
+        ValueError: If ``crop`` is not one of the supported ``CROPS`` or
+            ``year_start`` predates USDA statistics (1866).
         ConnectionError: If download fails or the API returns an error payload.
 
     Note:
@@ -166,6 +170,8 @@ def download_nass_yields(
     api_key = get_env(API_KEY_ENV_VAR, required=True)
     if crop not in CROPS:
         raise ValueError(f"crop must be one of {CROPS}, got {crop!r}")
+    if year_start < NASS_DATA_START_YEAR:
+        raise ValueError(f"year_start must be >= {NASS_DATA_START_YEAR}, got {year_start}")
 
     logger.info("requesting NASS %s county yields from %s onwards", crop, year_start)
     payload = _fetch_json(_build_query_url(api_key, crop, year_start))
@@ -226,6 +232,9 @@ def _power_to_frame(payload: Dict[str, Any], latitude: float, longitude: float) 
     if not parameter_block:
         raise ConnectionError(f"NASA POWER error response: {payload}")
     frame = pd.DataFrame(parameter_block)
+    # Explicit column order: never rely on the payload's JSON key order, and absent
+    # parameters become all-NaN columns rather than shifting the schema.
+    frame = frame.reindex(columns=list(POWER_PARAMETERS))
     frame = frame.replace(POWER_FILL_VALUE, float("nan"))
     frame.insert(0, "date", pd.to_datetime(frame.index, format="%Y%m%d"))
     frame = frame.reset_index(drop=True)
@@ -290,7 +299,10 @@ def download_weather_data(
 
     target_dir = output_dir if output_dir is not None else DATA_DIR
     target_dir.mkdir(parents=True, exist_ok=True)
-    output_path = target_dir / f"nasa_power_daily_{year_start}_{year_end}.csv"
+    # Coordinates in the filename: pulls for different points must never collide.
+    output_path = (
+        target_dir / f"nasa_power_daily_{latitude}_{longitude}_{year_start}_{year_end}.csv"
+    )
     frame.to_csv(output_path, index=False)
     logger.info("saved %d NASA POWER records to %s", len(frame), output_path)
     return output_path
