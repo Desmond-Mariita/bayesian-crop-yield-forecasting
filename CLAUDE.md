@@ -68,16 +68,17 @@ produces the report; Desmond reviews the report, not the raw run.**
   reviewers diverge — one backend's "no findings" is NOT sign-off.
 - **Execute-heavy analysis:** Gemini needs `--exec` (runs via Vertex AI); DeepSeek `-A
   --exec`; chunk a large exhaustive audit into bounded per-dimension passes and assemble (the
-  gemini CLI returns empty on one giant prompt); if Kimi's harness path hangs (Moonshot
-  endpoint), skip it — it is not a quota limit.
+  gemini CLI returns empty on one giant prompt); Kimi's Moonshot endpoint was fixed
+  2026-07-08 (previously hung) — include it, and skip only if it hangs again.
 
 ## External review protocol
 
 When the user asks for an **external review** (also: "outside review", "second opinion",
 "independent review", "have the others review this"), do NOT rely on your own analysis
 alone. You are Claude — the whole point is to get opinions from models *other than
-yourself*. Obtain independent reviews from the external backends: **Gemini, Codex, and
-DeepSeek** (add **Kimi** and **GLM** if the user wants a wider panel).
+yourself*. Obtain independent reviews from the external backends: **Gemini, Codex,
+DeepSeek, GLM, and Kimi** (Kimi's Moonshot endpoint was fixed 2026-07-08 — it is a
+standing panel member now; drop it only if it hangs again).
 
 Procedure:
 
