@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
+from types import MappingProxyType
 from typing import Mapping, Optional, Tuple
 
 from src.xai.cards import RejectionCard, RejectionCode
@@ -39,6 +40,11 @@ class GateStatus:
     current: Mapping[str, float]
     required: Mapping[str, float]
     missing: Tuple[str, ...]
+
+    def __post_init__(self) -> None:
+        """Deep-freeze the mappings so immutability is not merely shallow."""
+        object.__setattr__(self, "current", MappingProxyType(dict(self.current)))
+        object.__setattr__(self, "required", MappingProxyType(dict(self.required)))
 
 
 @dataclass(frozen=True)
@@ -120,22 +126,24 @@ def evaluate_convergence(
         "r_hat": float(r_hat),
         "ess_bulk": float(ess_bulk),
         "ess_tail": float(ess_tail),
-        "divergences": float(divergences),
+        "divergences": int(divergences),
     }
     required = {
         "r_hat": R_HAT_MAX,
         "ess_bulk": ESS_BULK_MIN,
         "ess_tail": ESS_TAIL_MIN,
-        "divergences": float(DIVERGENCES_MAX),
+        "divergences": DIVERGENCES_MAX,
     }
+    # Strict boundaries, matching the documented criteria exactly (ADR-008 / LINV-003):
+    # pass requires r_hat < 1.01, ess > 400, divergences == 0 — boundary values FAIL.
     failed = []
-    if current["r_hat"] > R_HAT_MAX:
+    if current["r_hat"] >= R_HAT_MAX:
         failed.append("r_hat")
-    if current["ess_bulk"] < ESS_BULK_MIN:
+    if current["ess_bulk"] <= ESS_BULK_MIN:
         failed.append("ess_bulk")
-    if current["ess_tail"] < ESS_TAIL_MIN:
+    if current["ess_tail"] <= ESS_TAIL_MIN:
         failed.append("ess_tail")
-    if divergences > DIVERGENCES_MAX:
+    if current["divergences"] > DIVERGENCES_MAX:
         failed.append("divergences")
     met = not failed
     logger.debug("convergence gate evaluated: met=%s failed=%s", met, failed)

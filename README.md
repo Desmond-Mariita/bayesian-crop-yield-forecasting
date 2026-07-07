@@ -99,7 +99,8 @@ Every change is gated **from commit one** by a git pre-commit hook and CI
 - **Companion notebooks** (`tools/check_notebooks.py`): every implemented curriculum
   module ships an explanatory notebook at the mirrored `notebooks/` path, built from
   `notebooks/TEMPLATE.ipynb` (source displayed via `inspect.getsource`, never copied) —
-  LINV-010.
+  LINV-010. CI gates notebook *existence*; content and execution discipline are by
+  review until the nbmake gate activates.
 - **flake8**, **black**, **mypy** (advisory), and **pytest with a ≥90% coverage gate**.
 - **Verification harness** (`tools/verify.py`) runs every gate and writes a timestamped,
   reviewable report to `reports/verification/` with a binary PASS/FAIL verdict.

@@ -93,3 +93,27 @@ class TestConvergenceGate:
         assert ESS_BULK_MIN == 400.0
         assert ESS_TAIL_MIN == 400.0
         assert DIVERGENCES_MAX == 0
+
+    def test_boundary_values_fail_strictly(self) -> None:
+        """Documented criteria are strict: exactly 1.01 / exactly 400 must FAIL.
+
+        Pass requires r_hat < 1.01 and ess > 400 — not <= / >=. This pins the boundary
+        semantics the external review panel flagged.
+        """
+        status = evaluate_convergence(r_hat=1.01, ess_bulk=400.0, ess_tail=400.0, divergences=0)
+        assert not status.met
+        assert status.missing == ("r_hat", "ess_bulk", "ess_tail")
+
+    def test_divergences_kept_as_int(self) -> None:
+        """The divergence count stays an integer in the reported status."""
+        status = evaluate_convergence(r_hat=1.001, ess_bulk=900.0, ess_tail=850.0, divergences=2)
+        assert status.current["divergences"] == 2
+        assert isinstance(status.current["divergences"], int)
+
+    def test_status_mappings_are_deeply_immutable(self) -> None:
+        """GateStatus mappings cannot be mutated after construction."""
+        status = evaluate_convergence(r_hat=1.001, ess_bulk=900.0, ess_tail=850.0, divergences=0)
+        with pytest.raises(TypeError):
+            status.current["r_hat"] = 0.5  # type: ignore[index]
+        with pytest.raises(TypeError):
+            status.required["r_hat"] = 9.9  # type: ignore[index]
