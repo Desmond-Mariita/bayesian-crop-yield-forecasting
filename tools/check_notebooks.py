@@ -1,89 +1,57 @@
 #!/usr/bin/env python3
-"""Companion-notebook enforcement gate (LINV-010).
+"""Graduation gate: companion notebooks (LINV-010) + dedicated tests per graduation.
 
-Every *graduated* curriculum module — one with at least one implemented callable — must
-ship a companion notebook at the mirrored path under ``notebooks/`` (e.g.
-``src/statistics/descriptive.py`` → ``notebooks/statistics/descriptive.ipynb``). The
-notebook explains motivation and mathematics and displays the shipped source via
-``inspect.getsource`` — it never carries a hand-maintained copy of the code.
+For every *graduated* curriculum callable — a qualified name in ``IMPLEMENTED`` in
+``src/curriculum_ledger.py`` (the single-source-of-truth ledger, imported directly) —
+this gate enforces two things:
 
-The single source of truth for graduation is the ``IMPLEMENTED`` ledger in
-``tests/unit/test_stub_contracts.py`` (qualified names like
-``src.statistics.descriptive:calculate_mean``). This tool reads that ledger via AST, so
-graduating a stub automatically demands its module's notebook. Infrastructure modules
-(e.g. ``src/xai``) are outside the curriculum ledger and therefore exempt unless listed
-in ``EXTRA_MODULES``.
+1. **Companion notebook** (LINV-010): the module ships a notebook at the mirrored path
+   under ``notebooks/`` (e.g. ``src/statistics/descriptive.py`` →
+   ``notebooks/statistics/descriptive.ipynb``).
+2. **Dedicated tests**: the graduated callable is referenced in at least one test file
+   OUTSIDE the stub-contract suites. The global coverage gate is only a backstop — this
+   check mechanically requires per-graduation tests (the panel's convergent Major).
 
-Pure standard library; exits non-zero on any violation.
+Infrastructure modules (outside the curriculum stub ledger, e.g. ``src/xai``) are exempt
+unless opted into ``EXTRA_MODULES``. Pure standard library; exits non-zero on violation.
 """
 
 from __future__ import annotations
 
-import argparse
-import ast
+import re
 import sys
 from pathlib import Path
 from typing import FrozenSet, List
 
-LEDGER_PATH: Path = Path("tests/unit/test_stub_contracts.py")
-LEDGER_NAME: str = "IMPLEMENTED"
+REPO_ROOT: Path = Path(__file__).resolve().parents[1]
 NOTEBOOKS_DIR: Path = Path("notebooks")
+TESTS_DIR: Path = Path("tests")
 SRC_PREFIX: str = "src."
+
+# Contract suites do not count as dedicated tests for a graduated callable.
+CONTRACT_SUITES: FrozenSet[str] = frozenset(
+    {"test_stub_contracts.py", "test_stub_private_branches.py"}
+)
 
 # Non-curriculum modules that must ALSO ship a companion notebook (explicit opt-in).
 EXTRA_MODULES: FrozenSet[str] = frozenset()
 
 
-def read_graduation_ledger(ledger_path: Path) -> FrozenSet[str]:
-    """Read the ``IMPLEMENTED`` frozenset from the stub-contract test module.
-
-    Args:
-        ledger_path: Path to the test module holding the ledger.
+def load_ledger() -> FrozenSet[str]:
+    """Import the graduation ledger from ``src/curriculum_ledger.py``.
 
     Returns:
         The qualified callable names recorded as implemented.
 
     Raises:
-        ValueError: If the ledger file or the ``IMPLEMENTED`` assignment is missing or
-            not a literal ``frozenset(...)`` call.
+        ValueError: If the ledger module cannot be imported.
     """
-    if not ledger_path.is_file():
-        raise ValueError(f"graduation ledger not found: {ledger_path}")
-    tree = ast.parse(ledger_path.read_text(encoding="utf-8"))
-    # Only module top-level assignments count — a same-named local inside a function
-    # must never be mistaken for the ledger.
-    for node in tree.body:
-        target = None
-        if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
-            target = node.target.id
-        elif isinstance(node, ast.Assign) and len(node.targets) == 1:
-            first = node.targets[0]
-            target = first.id if isinstance(first, ast.Name) else None
-        if target != LEDGER_NAME or node.value is None:
-            continue
-        value = node.value
-        if (
-            isinstance(value, ast.Call)
-            and isinstance(value.func, ast.Name)
-            and value.func.id == "frozenset"
-        ):
-            if not value.args:
-                return frozenset()
-            return frozenset(ast.literal_eval(value.args[0]))
-        raise ValueError(f"{LEDGER_NAME} must be assigned a literal frozenset(...) call")
-    raise ValueError(f"no {LEDGER_NAME} assignment found in {ledger_path}")
-
-
-def graduated_modules(ledger: FrozenSet[str]) -> FrozenSet[str]:
-    """Extract the module part of every graduated qualified name.
-
-    Args:
-        ledger: Qualified names like ``src.statistics.descriptive:calculate_mean``.
-
-    Returns:
-        The dotted module paths containing at least one implemented callable.
-    """
-    return frozenset(name.partition(":")[0] for name in ledger)
+    sys.path.insert(0, str(REPO_ROOT))
+    try:
+        from src.curriculum_ledger import IMPLEMENTED
+    except Exception as exc:  # pragma: no cover - defensive: broken ledger must FAIL CI
+        raise ValueError(f"cannot import graduation ledger (src/curriculum_ledger.py): {exc}")
+    return frozenset(IMPLEMENTED)
 
 
 def expected_notebook(module: str) -> Path:
@@ -99,43 +67,80 @@ def expected_notebook(module: str) -> Path:
     return NOTEBOOKS_DIR / f"{relative}.ipynb"
 
 
-def main() -> int:
-    """Check every graduated module for its companion notebook and report the verdict.
+def search_token(qualified_name: str) -> str:
+    """Return the identifier a dedicated test must reference for a graduated name.
+
+    Functions use the function name; methods use the class name (method tokens like
+    ``fit`` are too generic to search for reliably).
+
+    Args:
+        qualified_name: Ledger entry such as ``src.models.linear_regression:LinearRegression.fit``.
 
     Returns:
-        0 when every required notebook exists (or nothing has graduated yet), 1 on any
-        missing notebook or an unreadable ledger.
+        The identifier to search for in test files.
     """
-    parser = argparse.ArgumentParser(description="companion-notebook gate (LINV-010)")
-    parser.add_argument(
-        "--ledger", default=str(LEDGER_PATH), help="Path to the stub-contract test module"
-    )
-    args = parser.parse_args()
+    callable_part = qualified_name.partition(":")[2]
+    return callable_part.split(".")[0]
 
+
+def has_dedicated_test(qualified_name: str) -> bool:
+    """Return whether a graduated callable is referenced outside the contract suites.
+
+    Args:
+        qualified_name: Ledger entry to check.
+
+    Returns:
+        True if some non-contract test file mentions the callable's search token.
+    """
+    pattern = re.compile(rf"\b{re.escape(search_token(qualified_name))}\b")
+    for test_file in sorted(TESTS_DIR.rglob("test_*.py")):
+        if test_file.name in CONTRACT_SUITES:
+            continue
+        if pattern.search(test_file.read_text(encoding="utf-8")):
+            return True
+    return False
+
+
+def main() -> int:
+    """Run the graduation gate and report the verdict.
+
+    Returns:
+        0 when every graduated name has its notebook and a dedicated test (or nothing
+        has graduated yet), 1 on any violation.
+    """
     write = sys.stdout.write
     try:
-        ledger = read_graduation_ledger(Path(args.ledger))
+        ledger = load_ledger()
     except ValueError as exc:
         write(f"VIOLATION: {exc}\n")
-        write("notebooks gate: FAIL (unreadable graduation ledger)\n")
+        write("graduation gate: FAIL (unreadable ledger)\n")
         return 1
 
-    required = sorted(graduated_modules(ledger) | EXTRA_MODULES)
-    if not required:
-        write("no curriculum modules graduated yet — notebooks gate trivially green\n")
+    modules = sorted(frozenset(name.partition(":")[0] for name in ledger) | EXTRA_MODULES)
+    if not modules:
+        write("no curriculum modules graduated yet — graduation gate trivially green\n")
         return 0
 
-    missing: List[str] = []
-    for module in required:
+    violations: List[str] = []
+    for module in modules:
         notebook = expected_notebook(module)
         if not notebook.is_file():
-            missing.append(f"{module} → expected companion notebook {notebook}")
-    if missing:
-        for entry in missing:
-            write(f"VIOLATION: missing notebook: {entry}\n")
-        write(f"notebooks gate: FAIL ({len(missing)} missing)\n")
+            violations.append(f"missing notebook: {module} → expected {notebook}")
+    for name in sorted(ledger):
+        if not has_dedicated_test(name):
+            violations.append(
+                f"missing dedicated test: {name} is graduated but no test file outside "
+                f"the contract suites references '{search_token(name)}'"
+            )
+    if violations:
+        for violation in violations:
+            write(f"VIOLATION: {violation}\n")
+        write(f"graduation gate: FAIL ({len(violations)} violation(s))\n")
         return 1
-    write(f"notebooks gate: PASS ({len(required)} module(s) with companion notebooks)\n")
+    write(
+        f"graduation gate: PASS ({len(modules)} module(s), {len(ledger)} graduated "
+        "name(s) with notebooks and dedicated tests)\n"
+    )
     return 0
 
 

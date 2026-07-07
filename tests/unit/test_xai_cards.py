@@ -82,28 +82,10 @@ class TestExplanationCard:
         detail["priors"]["mu"] = 0.0  # source mutation must not leak into the card
         assert card.technical_detail["priors"]["mu"] == 2500.0
 
-    def test_missing_requirements_list_is_snapshotted(self) -> None:
-        """A caller-supplied list is coerced to a tuple; later mutation cannot leak in."""
-        requirements = ["n_complete_seasons"]
-        card = RejectionCard(
-            rejection_code=RejectionCode.MISSING_DATA,
-            recommendation="Record at least 3 complete crop seasons.",
-            data_source="manual_app",
-            missing_requirements=requirements,  # type: ignore[arg-type]
-        )
-        requirements.append("n_counties")
-        assert card.missing_requirements == ("n_complete_seasons",)
-
-    @pytest.mark.parametrize("bad", ["n_seasons", ("",), (42,)])
-    def test_malformed_missing_requirements_rejected(self, bad: object) -> None:
-        """A bare string or non-string/empty items raise instead of producing nonsense."""
-        with pytest.raises(ValueError, match="missing_requirements"):
-            RejectionCard(
-                rejection_code=RejectionCode.MISSING_DATA,
-                recommendation="Record more seasons.",
-                data_source="manual_app",
-                missing_requirements=bad,  # type: ignore[arg-type]
-            )
+    def test_plain_string_data_quality_rejected(self) -> None:
+        """The typed enum member is required — a plain string must not pass."""
+        with pytest.raises(ValueError, match="data_quality"):
+            ExplanationCard(**(_explanation_kwargs() | {"data_quality": "complete"}))
 
 
 class TestRejectionCard:
@@ -153,8 +135,25 @@ class TestRejectionCard:
                 data_source="manual_app",
             )
 
+    def test_missing_requirements_list_is_snapshotted(self) -> None:
+        """A caller-supplied list is coerced to a tuple; later mutation cannot leak in."""
+        requirements = ["n_complete_seasons"]
+        card = RejectionCard(
+            rejection_code=RejectionCode.MISSING_DATA,
+            recommendation="Record at least 3 complete crop seasons.",
+            data_source="manual_app",
+            missing_requirements=requirements,  # type: ignore[arg-type]
+        )
+        requirements.append("n_counties")
+        assert card.missing_requirements == ("n_complete_seasons",)
 
-def test_plain_string_data_quality_rejected() -> None:
-    """The typed enum member is required — a plain string must not pass."""
-    with pytest.raises(ValueError, match="data_quality"):
-        ExplanationCard(**(_explanation_kwargs() | {"data_quality": "complete"}))
+    @pytest.mark.parametrize("bad", ["n_seasons", ("",), (42,)])
+    def test_malformed_missing_requirements_rejected(self, bad: object) -> None:
+        """A bare string or non-string/empty items raise instead of producing nonsense."""
+        with pytest.raises(ValueError, match="missing_requirements"):
+            RejectionCard(
+                rejection_code=RejectionCode.MISSING_DATA,
+                recommendation="Record more seasons.",
+                data_source="manual_app",
+                missing_requirements=bad,  # type: ignore[arg-type]
+            )

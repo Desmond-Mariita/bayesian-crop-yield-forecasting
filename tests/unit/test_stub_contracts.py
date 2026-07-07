@@ -7,12 +7,14 @@ two invariants:
 1. An unimplemented function fails loudly rather than silently returning wrong numbers
    (LINV-009 spirit — evidence before claims).
 2. The moment a stub is implemented, its contract test here FAILS. The implementer must
-   then move the callable's qualified name into ``IMPLEMENTED``, write real unit tests
-   for it, and add the module's companion notebook (LINV-010) — a built-in TDD nudge.
+   then add the callable's qualified name to ``IMPLEMENTED`` in
+   ``src/curriculum_ledger.py``, write real unit tests for it, and add the module's
+   companion notebook (LINV-010) — a built-in TDD nudge.
 
-``IMPLEMENTED`` doubles as the graduation ledger read by ``tools/check_notebooks.py``,
-which demands a companion notebook at the mirrored ``notebooks/`` path for every module
-named here. Keep it a literal ``frozenset(...)`` call.
+Graduated names are not skipped — their contract flips: they must NO LONGER raise
+``NotImplementedError``, so a name cannot be parked in the ledger ahead of its
+implementation. ``tools/check_notebooks.py`` imports the same ledger and additionally
+demands the companion notebook and a dedicated test reference for every graduated name.
 
 Coverage note: exercising every stub's ``raise`` line is what makes the >=90% coverage
 gate meaningful pre-implementation — the gate then measures that *new real code* is
@@ -35,10 +37,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-# Qualified names ("module:Callable" or "module:Class.method") that have graduated from
-# stub to implementation. Names here are skipped by the contract and MUST have real unit
-# tests of their own.
-IMPLEMENTED: frozenset = frozenset()
+from src.curriculum_ledger import IMPLEMENTED
 
 STUB_MODULES: Tuple[str, ...] = (
     "src.data.acquisition",
@@ -288,8 +287,19 @@ def test_implemented_ledger_names_are_discovered() -> None:
 
 @pytest.mark.parametrize(("qualified_name", "invoke"), CASES, ids=[c[0] for c in CASES])
 def test_stub_raises_not_implemented(qualified_name: str, invoke: Callable[[], Any]) -> None:
-    """Every unimplemented stub raises NotImplementedError when called."""
+    """Ungraduated stubs must raise NotImplementedError; graduated names must not.
+
+    The graduated branch tolerates other exceptions — a real implementation may
+    legitimately reject this suite's dummy arguments; its behaviour is pinned by its own
+    dedicated tests, whose existence ``tools/check_notebooks.py`` enforces.
+    """
     if qualified_name in IMPLEMENTED:
-        pytest.skip("implemented — covered by its own unit tests")
+        try:
+            invoke()
+        except NotImplementedError:
+            pytest.fail(f"{qualified_name} is in IMPLEMENTED but still raises NotImplementedError")
+        except Exception:
+            pass
+        return
     with pytest.raises(NotImplementedError):
         invoke()
