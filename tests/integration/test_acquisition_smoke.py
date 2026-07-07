@@ -1,7 +1,8 @@
-"""Integration smoke test: the full acquisition path through a fake HTTP layer.
+"""Integration smoke tests: both acquisition paths through a fake HTTP layer.
 
 Exercises ``_fetch_json``'s real wiring (urlopen call, JSON decode, error mapping)
-without network access, then the end-to-end download flow on top of it.
+without network access, then the end-to-end NASS *and* NASA POWER download flows on
+top of it — happy paths and both transport failure modes for each entry point.
 """
 
 import io
@@ -105,3 +106,33 @@ def test_invalid_json_maps_to_connection_error(
     monkeypatch.setattr("urllib.request.urlopen", fake_urlopen)
     with pytest.raises(ConnectionError, match="invalid JSON"):
         download_nass_yields(output_dir=tmp_path)
+
+
+def test_weather_http_failure_maps_to_connection_error(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """URLError through the POWER entry point surfaces as ConnectionError."""
+
+    def fake_urlopen(url: str, timeout: float) -> FakeResponse:
+        raise urllib.error.URLError("connection refused")
+
+    monkeypatch.setattr("urllib.request.urlopen", fake_urlopen)
+    with pytest.raises(ConnectionError, match="request failed"):
+        download_weather_data(
+            latitude=42.03, longitude=-93.62, year_start=2021, year_end=2021, output_dir=tmp_path
+        )
+
+
+def test_weather_invalid_json_maps_to_connection_error(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """A non-JSON body through the POWER entry point surfaces as ConnectionError."""
+
+    def fake_urlopen(url: str, timeout: float) -> FakeResponse:
+        return FakeResponse(b"<html>gateway timeout</html>")
+
+    monkeypatch.setattr("urllib.request.urlopen", fake_urlopen)
+    with pytest.raises(ConnectionError, match="invalid JSON"):
+        download_weather_data(
+            latitude=42.03, longitude=-93.62, year_start=2021, year_end=2021, output_dir=tmp_path
+        )

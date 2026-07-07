@@ -67,6 +67,12 @@ class EvidenceGate:
         Returns:
             The gate status, with unmet requirement keys listed in ``missing``.
         """
+        absent = tuple(key for key in self.requirements if key not in current)
+        if absent:
+            # Fail-closed but loud: an absent key counts as zero evidence, which is the
+            # safe direction — but if it is a typo in the caller's key names, silence
+            # would mask an integration bug (the model just never activates).
+            logger.warning("evidence gate: no observation for %s — counting as 0", absent)
         observed = {key: float(current.get(key, 0.0)) for key in self.requirements}
         missing = tuple(
             key for key, required in self.requirements.items() if observed[key] < float(required)
