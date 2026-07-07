@@ -22,7 +22,7 @@ DEVELOPER GUIDELINES (strict)
 4. Architecture & File Handling
     • Imports: All imports must be at the top, one per line, with no unused imports.
     • Path Safety: Use pathlib.Path only; no string concatenation for paths.
-    • Constants & Config: No magic numbers; define constants at the top. Centralize configurations in configs/ and src/utils/config.py, supporting .env.
+    • Constants & Config: No magic numbers; define constants at the top. Centralize configurations in config/ and src/utils/config.py, supporting .env.
     • Observability: Use the logging module for state changes; avoid print() statements.
 
 5. Tests, Determinism & Artifacts
