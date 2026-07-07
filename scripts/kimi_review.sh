@@ -14,6 +14,11 @@
 #   -o FILE   output report path (required; convention: reviews/kimi/<slug>.md)
 #   -m MODEL  Kimi model (default kimi-k2.6; or set KIMI_MODEL)
 #   -p FILE   read the prompt from FILE instead of stdin
+#   --exec    auto-approve tool calls (--dangerously-skip-permissions) so Kimi can EXECUTE —
+#             write files / run commands. Needed when the prompt tells Kimi to persist the
+#             review to disk itself (or run scripts): in the default read-only plan mode such
+#             a prompt stalls at the "plan approved?" gate headlessly and exits without doing
+#             the review. Default stays read-only (plan): the review is captured from stdout.
 
 set -eo pipefail
 trap 'rc=$?; echo "kimi_review.sh: aborted at line $LINENO (exit $rc)" >&2' ERR
@@ -22,12 +27,13 @@ trap 'rc=$?; echo "kimi_review.sh: aborted at line $LINENO (exit $rc)" >&2' ERR
 NODE_BIN="$(ls -d "$HOME"/.nvm/versions/node/*/bin 2>/dev/null | sort -V | tail -1 || true)"
 if [ -n "$NODE_BIN" ]; then export PATH="$NODE_BIN:$PATH"; fi
 
-MODEL="${KIMI_MODEL:-kimi-k2.6}"; OUT=""; PROMPT_FILE=""
+MODEL="${KIMI_MODEL:-kimi-k2.6}"; OUT=""; PROMPT_FILE=""; EXEC=0
 while [ $# -gt 0 ]; do
   case "$1" in
     -o) OUT="$2"; shift 2;;
     -m) MODEL="$2"; shift 2;;
     -p) PROMPT_FILE="$2"; shift 2;;
+    --exec) EXEC=1; shift;;
     --) shift; break;;
     -*) echo "unknown option: $1" >&2; exit 2;;
     *) break;;
@@ -71,7 +77,13 @@ trap 'rm -f "$raw" "$err"' EXIT
 # the timeout and looks like a hang (interactive kimi-shell has no such timeout, hence it
 # "works"). cwd=$ROOT lets claude read the repo's files directly and fast. Subshell keeps the
 # outer cwd (and the -o output path) intact. Prompt on stdin (printf) EOFs so the CLI won't block.
-if ! ( cd "$ROOT" && printf '%s' "$PROMPT" | claude -p --output-format text --permission-mode plan >"$raw" 2>"$err" ); then
+# Permission mode: default plan (read-only; the review is captured from stdout). --exec switches
+# to --dangerously-skip-permissions so Kimi can WRITE/RUN — required when the prompt instructs Kimi
+# to persist the review itself or execute scripts (plan mode otherwise stalls at the "plan
+# approved?" gate headlessly and exits without doing the review).
+if [ "$EXEC" = 1 ]; then perm=(--dangerously-skip-permissions); mode="EXECUTE"; else perm=(--permission-mode plan); mode="read-only (plan)"; fi
+echo ">>> kimi:$MODEL ($mode) -> $OUT" >&2
+if ! ( cd "$ROOT" && printf '%s' "$PROMPT" | claude -p --output-format text "${perm[@]}" >"$raw" 2>"$err" ); then
   echo "FAILED (kimi via claude harness):" >&2
   sed 's/^/    /' "$err" >&2
   exit 1
