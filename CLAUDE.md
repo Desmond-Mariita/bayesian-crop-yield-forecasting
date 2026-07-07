@@ -9,12 +9,14 @@ Two kinds of review. **Both must be saved to disk — never keep a review only i
 
 **Internal review** = Claude spins up **subagents (Sonnet)** to critique the work.
 - Claude decides how many, but the count **must not exceed 5**.
-- Run **at most 2 subagents at a time**.
+- Run **at most 2 subagents at a time** (this cap applies to **internal subagents only**).
 - Among the (up to 5) there **must be a devil's-advocate / red-team** agent — whichever is
   applicable — whose job is to attack the work and find what's wrong, not to confirm it.
 
 **External review** = calling the other LLMs via the `scripts/*_review.sh` wrappers
-(procedure below + `AGENTS.md`).
+(procedure below + `AGENTS.md`). External reviewers are **not** subagents — the 2-at-a-time
+cap does **not** apply to them: **dispatch ALL external backends in one parallel batch**
+(each `timeout`-guarded, backgrounded, then `wait`).
 
 **Deep-analysis rule:** any task that requires deep analysis **MUST include Codex's
 review/feedback**. If the **Codex review fails for any reason** (auth, timeout, error, empty
