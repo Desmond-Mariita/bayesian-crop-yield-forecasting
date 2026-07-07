@@ -23,6 +23,7 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 
 COV_FAIL_UNDER: int = 90
+DETAIL_CHAR_LIMIT: int = 4000
 
 
 def _run(cmd: List[str], cwd: Path) -> Tuple[int, str]:
@@ -187,7 +188,9 @@ def render_markdown(
     lines.append("")
     for c in checks:
         if c["status"] not in {"PASS", "DEFERRED"} and c["detail"]:
-            detail = str(c["detail"])[:4000]
+            detail = str(c["detail"])
+            if len(detail) > DETAIL_CHAR_LIMIT:
+                detail = detail[:DETAIL_CHAR_LIMIT] + "\n...[truncated]"
             lines.append(f"## {c['name']} — {c['status']}\n```\n{detail}\n```\n")
     return "\n".join(lines) + "\n"
 

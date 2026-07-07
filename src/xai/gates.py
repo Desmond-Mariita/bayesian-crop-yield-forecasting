@@ -37,8 +37,8 @@ class GateStatus:
     """
 
     met: bool
-    current: Mapping[str, float]
-    required: Mapping[str, float]
+    current: Mapping[str, int | float]
+    required: Mapping[str, int | float]
     missing: Tuple[str, ...]
 
     def __post_init__(self) -> None:

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import abc
-from typing import Union
 
 import numpy as np
 
@@ -19,7 +18,7 @@ class ExplainableModel(abc.ABC):
     """
 
     @abc.abstractmethod
-    def explain_or_reject(self, X: np.ndarray) -> Union[ExplanationCard, RejectionCard]:
+    def explain_or_reject(self, X: np.ndarray) -> ExplanationCard | RejectionCard:
         """Run inference and return a structured explanation or a structured refusal.
 
         Args:
