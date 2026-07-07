@@ -34,6 +34,25 @@ class RejectionCode(str, enum.Enum):
     NOT_CONVERGED = "NOT_CONVERGED"
 
 
+def _deep_freeze(value: Any) -> Any:
+    """Recursively convert mutable containers into immutable equivalents.
+
+    Mappings become read-only proxies; lists/sets/tuples become tuples (recursively).
+    Scalars pass through unchanged.
+
+    Args:
+        value: Value to freeze.
+
+    Returns:
+        An immutable equivalent of ``value``.
+    """
+    if isinstance(value, Mapping):
+        return MappingProxyType({key: _deep_freeze(item) for key, item in value.items()})
+    if isinstance(value, (list, tuple, set, frozenset)):
+        return tuple(_deep_freeze(item) for item in value)
+    return value
+
+
 def _require_non_empty(value: str, field_name: str) -> None:
     """Raise if a required string field is empty or whitespace.
 
@@ -101,9 +120,9 @@ class ExplanationCard:
         _require_non_empty(self.feature_pipeline_version, "feature_pipeline_version")
         _require_non_empty(self.data_source, "data_source")
         _require_confidence_in_range(self.confidence)
-        # frozen=True only freezes attribute rebinding; snapshot + proxy the mapping so
-        # the card's contents cannot be mutated after construction either.
-        object.__setattr__(self, "technical_detail", MappingProxyType(dict(self.technical_detail)))
+        # frozen=True only freezes attribute rebinding; recursively snapshot the payload
+        # so neither the card's mapping nor any nested container can be mutated later.
+        object.__setattr__(self, "technical_detail", _deep_freeze(dict(self.technical_detail)))
 
 
 @dataclass(frozen=True)
@@ -125,7 +144,7 @@ class RejectionCard:
     confidence: float = 0.0
 
     def __post_init__(self) -> None:
-        """Validate field values at construction time.
+        """Validate field values and coerce the requirements to an immutable tuple.
 
         Raises:
             ValueError: If any required field is empty or confidence is out of range.
@@ -133,3 +152,5 @@ class RejectionCard:
         _require_non_empty(self.recommendation, "recommendation")
         _require_non_empty(self.data_source, "data_source")
         _require_confidence_in_range(self.confidence)
+        # A caller may pass a list; snapshot it so later mutation cannot leak in.
+        object.__setattr__(self, "missing_requirements", tuple(self.missing_requirements))

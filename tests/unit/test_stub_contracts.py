@@ -23,7 +23,7 @@ tests would drop coverage, not maintain it.
 import importlib
 import inspect
 from pathlib import Path
-from typing import Any, Callable, List, Tuple
+from typing import Any, Callable, FrozenSet, List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -187,10 +187,85 @@ def _class_cases(
 
 CASES = _collect_cases()
 
+# The pinned curriculum surface. Discovery must match this EXACTLY: a missed callable
+# (renamed, re-exported, wrapped in a descriptor the engine cannot see) fails loudly
+# instead of silently evading the contract. Adding or removing a public callable in a
+# stub module is a deliberate act — update this manifest in the same commit.
+EXPECTED_SURFACE: FrozenSet[str] = frozenset(
+    {
+        "src.data.acquisition:download_nass_yields",
+        "src.data.acquisition:download_weather_data",
+        "src.data.loader:get_data_summary",
+        "src.data.loader:load_yield_data",
+        "src.data.loader:validate_data",
+        "src.metrics.classification:accuracy",
+        "src.metrics.classification:auc",
+        "src.metrics.classification:confusion_matrix",
+        "src.metrics.classification:f1_score",
+        "src.metrics.classification:precision",
+        "src.metrics.classification:recall",
+        "src.metrics.classification:roc_curve",
+        "src.metrics.regression:adjusted_r_squared",
+        "src.metrics.regression:mean_absolute_error",
+        "src.metrics.regression:mean_squared_error",
+        "src.metrics.regression:r_squared",
+        "src.metrics.regression:root_mean_squared_error",
+        "src.model_selection.cross_validation:cross_val_score",
+        "src.model_selection.cross_validation:k_fold_split",
+        "src.model_selection.cross_validation:train_test_split",
+        "src.models.linear_regression:LinearRegression.fit",
+        "src.models.linear_regression:LinearRegression.predict",
+        "src.models.linear_regression:LinearRegression.score",
+        "src.models.logistic_regression:LogisticRegression.fit",
+        "src.models.logistic_regression:LogisticRegression.predict",
+        "src.models.logistic_regression:LogisticRegression.predict_proba",
+        "src.models.regularized:LassoRegression.fit",
+        "src.models.regularized:LassoRegression.predict",
+        "src.models.regularized:RidgeRegression.fit",
+        "src.models.regularized:RidgeRegression.predict",
+        "src.preprocessing.encoders:OneHotEncoder.fit",
+        "src.preprocessing.encoders:OneHotEncoder.transform",
+        "src.preprocessing.encoders:TargetEncoder.fit",
+        "src.preprocessing.encoders:TargetEncoder.transform",
+        "src.preprocessing.imputers:SimpleImputer.fit",
+        "src.preprocessing.imputers:SimpleImputer.fit_transform",
+        "src.preprocessing.imputers:SimpleImputer.transform",
+        "src.preprocessing.imputers:calculate_mean_manual",
+        "src.preprocessing.imputers:calculate_median_manual",
+        "src.preprocessing.outliers:detect_outliers_iqr",
+        "src.preprocessing.outliers:detect_outliers_zscore",
+        "src.preprocessing.outliers:mahalanobis_distance",
+        "src.preprocessing.scalers:MinMaxScaler.fit",
+        "src.preprocessing.scalers:MinMaxScaler.transform",
+        "src.preprocessing.scalers:StandardScaler.fit",
+        "src.preprocessing.scalers:StandardScaler.inverse_transform",
+        "src.preprocessing.scalers:StandardScaler.transform",
+        "src.statistics.correlation:calculate_vif",
+        "src.statistics.correlation:correlation_matrix",
+        "src.statistics.correlation:pearson_correlation",
+        "src.statistics.correlation:spearman_correlation",
+        "src.statistics.descriptive:calculate_kurtosis",
+        "src.statistics.descriptive:calculate_mean",
+        "src.statistics.descriptive:calculate_skewness",
+        "src.statistics.descriptive:calculate_std",
+        "src.statistics.descriptive:calculate_variance",
+        "src.statistics.descriptive:five_number_summary",
+        "src.statistics.hypothesis_tests:calculate_p_value_from_t",
+        "src.statistics.hypothesis_tests:chi_squared_test",
+        "src.statistics.hypothesis_tests:welch_ttest",
+        "src.statistics.hypothesis_tests:z_test_proportion",
+        "src.utils.validation:check_array",
+    }
+)
 
-def test_discovery_finds_the_curriculum_surface() -> None:
-    """The scaffold's public API is discovered (guards against silent misdiscovery)."""
-    assert len(CASES) >= 40
+
+def test_discovery_matches_pinned_surface_exactly() -> None:
+    """Discovery must equal the pinned manifest — no silent misses, no silent growth."""
+    discovered = {qualified_name for qualified_name, _ in CASES}
+    missed = EXPECTED_SURFACE - discovered
+    unexpected = discovered - EXPECTED_SURFACE
+    assert not missed, f"discovery no longer sees: {sorted(missed)}"
+    assert not unexpected, f"undocumented additions to the surface: {sorted(unexpected)}"
 
 
 def test_implemented_ledger_names_are_discovered() -> None:

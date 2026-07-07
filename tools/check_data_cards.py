@@ -6,14 +6,17 @@ keragita-farm-intelligence's data cards. A card is YAML frontmatter (between ``-
 fences) followed by a Markdown body. Pure standard library — no third-party dependencies
 — so it runs identically in CI, in hooks, and locally. Exits non-zero on any violation.
 
-The frontmatter parser is deliberately minimal: ``key: value`` scalars and block lists
-(``key:`` followed by ``  - item`` lines). Anything fancier should be simplified in the
-card, not supported here.
+The parser accepts a RESTRICTED frontmatter syntax, not real YAML: ``key: value``
+scalars and block lists (``key:`` followed by ``  - item`` lines). Inline comments are
+stripped only when a ``#`` is preceded by whitespace (so URLs with fragments survive).
+Nested mappings, block scalars, anchors, and multi-line values are unsupported —
+anything fancier should be simplified in the card, not supported here.
 """
 
 from __future__ import annotations
 
 import argparse
+import re
 import sys
 from pathlib import Path
 from typing import Dict, List, Tuple, Union
@@ -66,7 +69,7 @@ def parse_frontmatter(text: str) -> Dict[str, FieldValue]:
                 raise ValueError(f"line {index}: list item outside a list field")
             existing = fields[current_list_key]
             assert isinstance(existing, list)
-            item = stripped[2:].strip().strip("\"'")
+            item = re.split(r"\s+#", stripped[2:], maxsplit=1)[0].strip().strip("\"'")
             if not item:
                 raise ValueError(f"line {index}: empty list item in '{current_list_key}'")
             existing.append(item)
@@ -74,6 +77,9 @@ def parse_frontmatter(text: str) -> Dict[str, FieldValue]:
         if ":" not in stripped:
             raise ValueError(f"line {index}: expected 'key: value', got {stripped!r}")
         key, _, value = stripped.partition(":")
+        # Strip inline comments only when '#' follows whitespace, so URL fragments
+        # (https://example.com/page#section) are not truncated.
+        value = re.split(r"\s+#", value, maxsplit=1)[0]
         key, value = key.strip(), value.strip().strip("\"'")
         if value:
             fields[key] = value
