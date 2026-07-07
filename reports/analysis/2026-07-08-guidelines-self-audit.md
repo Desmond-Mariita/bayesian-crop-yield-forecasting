@@ -37,3 +37,20 @@ modifications, and the test suites.
 
 Notes 1–2 (import style interpretation; two semantic literals) require no action unless
 Desmond wants stricter readings.
+
+## Closure (2026-07-08, same day — Desmond: "close all 3")
+
+1. **Config layer** — `src/utils/config.py` created (`get_env`: environment first,
+   gitignored `.env` fallback, `required=True` contract, values never logged);
+   `download_nass_yields` now looks its key up through it; full unit suite +
+   .env-fed integration test (`tests/unit/test_config.py`). The guidelines' stale
+   `configs/` path corrected to `config/` (one-word factual fix, previously flagged
+   by Codex r4 and the audit).
+2. **Tools tests** — `tests/unit/test_tools_checkers.py` pins `parse_frontmatter`
+   (5 malformed shapes + comments/URL-fragment behaviour), `validate_card` (repo
+   cards as golden fixtures + violation reporting), and the graduation-gate helpers
+   (`load_ledger`, `expected_notebook`, `search_token`, `has_dedicated_test`
+   including the contract-suite exclusion and word-boundary matching).
+3. **Ledger tests** — `tests/unit/test_curriculum_ledger.py`: type contract,
+   well-formedness of every entry, and resolution of every graduated name to a real
+   callable.

@@ -89,9 +89,10 @@ class TestRecordsToFrame:
 class TestDownloadNassYields:
     """The public entry point, with fetching stubbed out."""
 
-    def test_missing_api_key_raises(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Without NASS_API_KEY the function refuses before any network use."""
+    def test_missing_api_key_raises(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+        """Without NASS_API_KEY (env or .env) the function refuses before any network use."""
         monkeypatch.delenv("NASS_API_KEY", raising=False)
+        monkeypatch.chdir(tmp_path)  # guarantee no local .env can satisfy the lookup
         with pytest.raises(EnvironmentError, match="NASS_API_KEY"):
             download_nass_yields()
 

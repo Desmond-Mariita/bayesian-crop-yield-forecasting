@@ -16,7 +16,6 @@ rule (see ``docs/INVARIANTS.md`` LINV-005 companion practice and the cards
 
 import json
 import logging
-import os
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -24,6 +23,8 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 import pandas as pd
+
+from src.utils.config import get_env
 
 # =============================================================================
 # CONSTANTS
@@ -158,11 +159,11 @@ def download_nass_yields(
 
     Note:
         Requires a free API key from https://quickstats.nass.usda.gov/api
-        set as the NASS_API_KEY environment variable.
+        set as the NASS_API_KEY environment variable or in a local ``.env``
+        file (looked up via ``src.utils.config.get_env``; never committed,
+        never logged).
     """
-    api_key = os.environ.get(API_KEY_ENV_VAR, "")
-    if not api_key:
-        raise EnvironmentError(f"{API_KEY_ENV_VAR} environment variable is not set")
+    api_key = get_env(API_KEY_ENV_VAR, required=True)
     if crop not in CROPS:
         raise ValueError(f"crop must be one of {CROPS}, got {crop!r}")
 
