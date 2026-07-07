@@ -1,0 +1,216 @@
+# Kilifi County crop knowledge base — planting triggers, KALRO yield bands, risk rules.
+# Adapted from keragita-farm-intelligence/config/crops/kilifi_crops.yaml
+# (Keragita Farms Ltd, Gongoni Ward, Kilifi County, Kenya) on 2026-07-07;
+# crop entries are verbatim from the production platform.
+#
+# Purpose in this repo: the KALRO yield bands become PRIORS for the Phase-4 thin-data
+# capstone (LINV-006: wide priors until data justifies otherwise; LINV-007: every
+# domain constant carries provenance). Do not tighten any band without a documented
+# source. Data card: docs/data_cards/DC-kalro-kilifi-crops.md
+
+schema_version: 1
+
+provenance:
+  source_repo: "https://github.com/Desmond-Mariita/keragita-farm-intelligence"
+  source_path: "config/crops/kilifi_crops.yaml"
+  adapted: "2026-07-07"
+  primary_reference: "KALRO Mtwapa 2019; Kilifi County Annual Report"
+  units:
+    kalro_base_yield_t_ha: "tonnes per hectare, [low, high] band"
+    gongoni_reduction_pct: "percent yield reduction on sandy Gongoni soils, [low, high]"
+    p2o5_demand_kg_ha: "kg P2O5 per hectare per season"
+    cumulative_rainfall_mm: "mm within cumulative_window_days"
+    soil_moisture_vwc_min: "volumetric water content, fraction"
+    waterlogging_threshold_mm: "mm within window_days at the vulnerable stage"
+
+seasons:
+  masika:
+    display_name: "Masika (long rains, MAM)"
+    months: [3, 4, 5]
+    basis: "KMD seasonal calendar for the Kenyan coast"
+  vuli:
+    display_name: "Vuli (short rains, OND)"
+    months: [10, 11, 12]
+    basis: "KMD seasonal calendar for the Kenyan coast"
+
+crops:
+  maize:
+    display_name: "Maize (Mahindi)"
+    season: "masika"
+    variety: "DH04, KH600-series (early-maturing)"
+    kalro_base_yield_t_ha: [1.5, 2.5]
+    gongoni_reduction_pct: [30, 50]
+    p2o5_demand_kg_ha: 50
+    planting_trigger:
+      cumulative_rainfall_mm: 40
+      cumulative_window_days: 7
+      soil_moisture_vwc_min: 0.08
+    waterlogging:
+      threshold_mm: 100
+      window_days: 7
+      vulnerable_stage: "tasseling"
+    risks: ["moisture_stress_at_tasseling", "p_deficiency"]
+    basis: "literature"
+    kalro_reference: "KALRO Mtwapa 2019, Kilifi County Annual Report"
+    notes: "P-sensitive crop. Shallow root zone in sand limits P access."
+
+  green_grams:
+    display_name: "Green Grams (Pojo)"
+    season: "vuli"
+    variety: "KAT 83-28 (waterlogging-tolerant)"
+    kalro_base_yield_t_ha: [0.6, 1.0]
+    gongoni_reduction_pct: [20, 40]
+    p2o5_demand_kg_ha: 30
+    planting_trigger:
+      cumulative_rainfall_mm: 30
+      cumulative_window_days: 5
+      soil_moisture_vwc_min: 0.06
+    waterlogging:
+      threshold_mm: 60
+      window_days: 5
+      vulnerable_stage: "flowering"
+    risks: ["waterlogging_during_flowering", "aphids"]
+    basis: "literature"
+    kalro_reference: "KALRO Mtwapa 2019"
+    notes: "N-fixing. Rots in 5 days of waterlogging. Raised beds recommended."
+
+  cowpeas:
+    display_name: "Cowpeas (Kunde)"
+    season: "either"
+    variety: "KVU27-1, M66"
+    kalro_base_yield_t_ha: [0.5, 0.8]
+    gongoni_reduction_pct: [20, 30]
+    p2o5_demand_kg_ha: 25
+    planting_trigger:
+      cumulative_rainfall_mm: 30
+      cumulative_window_days: 7
+      soil_moisture_vwc_min: 0.06
+    waterlogging:
+      threshold_mm: 80
+      window_days: 7
+      vulnerable_stage: "pod_filling"
+    risks: ["aphids", "pod_borers"]
+    basis: "literature"
+    kalro_reference: "KALRO Mtwapa 2019"
+    notes: "N-fixing. Drought-tolerant. Moderate P requirement."
+
+  cassava:
+    display_name: "Cassava (Muhogo)"
+    season: "either"
+    variety: "KALRO-recommended (CMD-resistant)"
+    kalro_base_yield_t_ha: [10, 15]
+    gongoni_reduction_pct: [15, 25]
+    p2o5_demand_kg_ha: 20
+    planting_trigger:
+      cumulative_rainfall_mm: 40
+      cumulative_window_days: 10
+      soil_moisture_vwc_min: 0.06
+    waterlogging:
+      threshold_mm: 120
+      window_days: 10
+      vulnerable_stage: "establishment"
+    risks: ["cassava_mosaic_disease"]
+    basis: "literature"
+    kalro_reference: "KALRO Mtwapa 2019"
+    notes: "Sandy-soil tolerant. Low P requirement. 8-12 month cycle."
+
+  watermelon:
+    display_name: "Watermelon (Tikiti maji)"
+    season: "vuli"
+    variety: "Sugar Baby, Crimson Sweet"
+    kalro_base_yield_t_ha: [15, 25]
+    gongoni_reduction_pct: [20, 35]
+    p2o5_demand_kg_ha: 40
+    planting_trigger:
+      cumulative_rainfall_mm: 35
+      cumulative_window_days: 7
+      soil_moisture_vwc_min: 0.07
+    waterlogging:
+      threshold_mm: 50
+      window_days: 5
+      vulnerable_stage: "fruit_set"
+    risks: ["root_rot_in_saturated_soil", "fusarium_wilt"]
+    basis: "literature"
+    kalro_reference: "KALRO Mtwapa 2019"
+    notes: "Vuli preferred. Well-drained plots only."
+
+  cashew:
+    display_name: "Cashew (Korosho)"
+    season: "masika"
+    variety: "AZA-series (KALRO)"
+    kalro_base_yield_t_ha: [0.5, 1.5]
+    gongoni_reduction_pct: [10, 20]
+    p2o5_demand_kg_ha: 30
+    planting_trigger:
+      cumulative_rainfall_mm: 50
+      cumulative_window_days: 10
+      soil_moisture_vwc_min: 0.08
+    waterlogging:
+      threshold_mm: 150
+      window_days: 14
+      vulnerable_stage: "seedling"
+    risks: ["powdery_mildew", "cashew_nut_weevil"]
+    basis: "literature"
+    kalro_reference: "KALRO Mtwapa, CashewNut Board of Tanzania data"
+    notes: "Perennial. 3-5 years to first harvest. Individual tree tracking."
+    crop_type: "perennial"
+
+  simsim:
+    display_name: "Sesame (Ufuta)"
+    season: "vuli"
+    variety: "Local selections"
+    kalro_base_yield_t_ha: [0.3, 0.6]
+    gongoni_reduction_pct: [15, 30]
+    p2o5_demand_kg_ha: 25
+    planting_trigger:
+      cumulative_rainfall_mm: 25
+      cumulative_window_days: 5
+      soil_moisture_vwc_min: 0.06
+    waterlogging:
+      threshold_mm: 40
+      window_days: 5
+      vulnerable_stage: "flowering"
+    risks: ["drought_stress_at_flowering"]
+    basis: "literature"
+    kalro_reference: "KALRO Mtwapa 2019"
+    notes: "Drought-sensitive at flowering. Monitor soil moisture."
+
+  pigeon_pea:
+    display_name: "Pigeon Pea (Mbaazi)"
+    season: "masika"
+    variety: "ICEAP 00040, KAT 60/8"
+    kalro_base_yield_t_ha: [0.5, 1.0]
+    gongoni_reduction_pct: [15, 25]
+    p2o5_demand_kg_ha: 20
+    planting_trigger:
+      cumulative_rainfall_mm: 35
+      cumulative_window_days: 7
+      soil_moisture_vwc_min: 0.06
+    waterlogging:
+      threshold_mm: 80
+      window_days: 7
+      vulnerable_stage: "pod_filling"
+    risks: ["pod_borers"]
+    basis: "literature"
+    kalro_reference: "KALRO Mtwapa 2019"
+    notes: "N-fixing. Standard Kilifi intercrop with maize."
+
+  sorghum:
+    display_name: "Sorghum (Mtama)"
+    season: "vuli"
+    variety: "Gadam, Serena"
+    kalro_base_yield_t_ha: [1.0, 2.0]
+    gongoni_reduction_pct: [15, 25]
+    p2o5_demand_kg_ha: 25
+    planting_trigger:
+      cumulative_rainfall_mm: 30
+      cumulative_window_days: 7
+      soil_moisture_vwc_min: 0.06
+    waterlogging:
+      threshold_mm: 80
+      window_days: 7
+      vulnerable_stage: "boot"
+    risks: ["striga", "stem_borers"]
+    basis: "literature"
+    kalro_reference: "KALRO Mtwapa 2019"
+    notes: "Drought backup crop. Low-input, drought-tolerant."
