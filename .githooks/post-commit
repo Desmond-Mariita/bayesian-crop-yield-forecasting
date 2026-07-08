@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Auto-rebuild the Graphify code knowledge graph after each commit — fast (~1s), local,
+# zero API cost. Graceful no-op if graphify isn't installed. graphify-out/ is git-excluded.
+export PATH="$HOME/.local/bin:$PATH"
+command -v graphify >/dev/null 2>&1 && graphify update . >/dev/null 2>&1 || true

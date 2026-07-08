@@ -3,6 +3,12 @@
 Guidance for Claude agents working in this repository. Review mechanics, the wrapper table,
 prompt design, model/auth details, and the `--exec` / `-A` flags live in `AGENTS.md` — read it.
 
+## Code navigation — query the graph, don't grep
+This repo has a **Graphify code knowledge graph** (MCP tools + `graphify explain/query/path`).
+To find callers, dependencies, or structure, prefer the graph tools (`query_graph`,
+`get_neighbors`, `shortest_path`, `get_node`, `god_nodes`) over grepping or reading whole files
+— same answer for a fraction of the tokens. The graph auto-rebuilds on commit (`graphify update .`).
+
 ## Review policy (Claude is the orchestrator)
 
 Two kinds of review. **Both must be saved to disk — never keep a review only in the conversation.**
